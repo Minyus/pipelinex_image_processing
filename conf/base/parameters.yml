@@ -22,6 +22,6 @@ PIPELINES:
     decorator: pipelinex.log_time
     nodes:
 
-      - inputs:
+      - inputs: img_01
         func:
-        outputs:
+        outputs: img_02

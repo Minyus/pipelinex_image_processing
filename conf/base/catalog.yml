@@ -8,3 +8,11 @@
 #  type: JSONLocalDataSet
 #  type: kedro.contrib.io.yaml_local.YAMLLocalDataSet
   cached: False
+
+img_01:
+  type: pipelinex.OpenCVImagesLocalDataSet
+  filepath: "data/input/TRIMG/11.jpg"
+
+img_02:
+  type: pipelinex.OpenCVImagesLocalDataSet
+  filepath: "data/load/11.jpg"

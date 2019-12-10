@@ -11,8 +11,10 @@
 
 img_01:
   type: pipelinex.OpenCVImagesLocalDataSet
-  filepath: "data/input/TRIMG/11.jpg"
+  filepath: data/input/TRIMG/11.jpg
 
-img_02:
+data/load/img_02.jpg:
   type: pipelinex.OpenCVImagesLocalDataSet
-  filepath: "data/load/11.jpg"
+
+data/load/img_03.jpg:
+  type: pipelinex.OpenCVImagesLocalDataSet

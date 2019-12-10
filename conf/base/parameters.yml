@@ -1,7 +1,7 @@
 
 RUN_CONFIG:
   pipeline_name: __default__
-  only_missing: True
+  only_missing: False
   runner: SequentialRunner # None
   tags: # None
   node_names: # None
@@ -24,4 +24,14 @@ PIPELINES:
 
       - inputs: img_01
         func:
+          - {=: pipelinex.CvResize, width: 0.2, height: 0.2}
+          - {=: pipelinex.CvBGR2Gray, _: }
+          - {=: pipelinex.CvGaussianBlur, ksize: "(5, 5)", sigmaX: 5, sigmaY: 5}
+          - {=: pipelinex.CvCanny, threshold1: 50, threshold2: 150, apertureSize: 3}
         outputs: img_02
+
+      - inputs: img_02
+        func:
+          - {=: pipelinex.CvBGR2Gray, _: }
+          - {=: empty_area.overlay_line_segments}
+        outputs: img_03

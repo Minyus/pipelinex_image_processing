@@ -24,10 +24,10 @@ def overlay_line_segments(img):
     depth_line_img = visualize_depth_line_img(
         img, flatten(q_depth_line_points_list), container_box
     )
-    empty_area_ratio = estimate_empty_area_ratio(
+    empty_ratio_dict = estimate_empty_area_ratio(
         q_depth_line_points_list, container_box, pt0
     )
-    print("empty_area_ratio: {}".format(empty_area_ratio))
+    print("empty_area_ratio: \n {}".format(empty_ratio_dict))
     return depth_line_img
 
 
@@ -148,14 +148,14 @@ def filter_line_segments(ls_list, pt0, flat=False):
     for points in ls_list:
         if points[0][1] < pt0[1]:
             if points[0][0] < pt0[0]:
-                bottom_left_ls_list.append(points)
-            else:
-                bottom_right_ls_list.append(points)
-        else:
-            if points[0][0] < pt0[0]:
                 top_left_ls_list.append(points)
             else:
                 top_right_ls_list.append(points)
+        else:
+            if points[0][0] < pt0[0]:
+                bottom_left_ls_list.append(points)
+            else:
+                bottom_right_ls_list.append(points)
 
     q_ls_list = [
         top_left_ls_list,
@@ -214,21 +214,26 @@ def visualize_depth_line_img(img, depth_line_points_list=None, container_box=Non
 def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
     x_min, y_min, x_max, y_max = container_box
 
-    def get_distance_from_pt0(points):
-        return norm(points[0] - pt0)
+    top_depth_line_points_list = (
+        q_depth_line_points_list[0] + q_depth_line_points_list[1]
+    )
+    top_y = max([pt1[1] for pt1, _ in top_depth_line_points_list])
+    top_ratio = (top_y - y_min) / (pt0[1] - y_min)
 
-    q_depth_ratio_list = []
-    for depth_line_points_list in q_depth_line_points_list:
-        depth_line_points_list.sort(key=get_distance_from_pt0)
-        pt1, _ = depth_line_points_list[0]
-        pt10x = pt1[0] - pt0[0]
-        pt10y = pt1[1] - pt0[1]
-        if pt10x < 0:
-            depth_ratio = -pt10x / (pt0[0] - x_min)
-        else:
-            depth_ratio = pt10x / (x_max - pt0[0])
-        q_depth_ratio_list.append(depth_ratio)
+    bottom_left_line_points_list = q_depth_line_points_list[2]
+    bottom_left_x = max([pt1[0] for pt1, _ in bottom_left_line_points_list])
+    bottom_left_ratio = (bottom_left_x - x_min) / (pt0[0] - x_min)
+    left_empty_ratio = bottom_left_ratio / top_ratio
 
-    left_empty_area_ratio = q_depth_ratio_list[2] / q_depth_ratio_list[0]
-    right_empty_area_ratio = q_depth_ratio_list[3] / q_depth_ratio_list[1]
-    return (left_empty_area_ratio + right_empty_area_ratio) / 2
+    bottom_right_line_points_list = q_depth_line_points_list[3]
+    bottom_right_x = min([pt1[0] for pt1, _ in bottom_right_line_points_list])
+    bottom_right_ratio = (x_max - bottom_right_x) / (x_max - pt0[0])
+    right_empty_ratio = bottom_right_ratio / top_ratio
+
+    empty_ratio = (left_empty_ratio + right_empty_ratio) / 2
+    empty_ratio_dict = dict(
+        empty_ratio=empty_ratio,
+        left_empty_ratio=left_empty_ratio,
+        right_empty_ratio=right_empty_ratio,
+    )
+    return empty_ratio_dict

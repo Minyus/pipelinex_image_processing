@@ -10,15 +10,8 @@ import cmath
 def overlay_line_segments(img):
 
     lines_img, line_points_list = detect_line_segments(img)
-
     pt0 = argsmax(lines_img)[::-1]
-
-    max_val = int(np.max(lines_img))
-    lines_img = cv2.line(
-        lines_img, pt1=tuple(pt0), pt2=tuple(pt0), color=max_val * 2, thickness=10
-    )
-    lines_img = (255 * (lines_img / np.max(lines_img, keepdims=True))).astype(np.uint8)
-
+    # lines_img = visualize_lines_img(lines_img)
     depth_line_points_list = extract_depth_line_segments(line_points_list, pt0)
     depth_line_points_list = connect_line_segments(depth_line_points_list, pt0)
     depth_line_points_list = filter_line_segments(depth_line_points_list, pt0)
@@ -54,6 +47,16 @@ def detect_line_segments(img):
     lines_img = cv2.GaussianBlur(lines_img, ksize=(51, 51), sigmaX=51)
 
     return lines_img, line_points_list
+
+
+def visualize_lines_img(lines_img):
+    max_val = int(np.max(lines_img))
+    lines_img = cv2.line(
+        lines_img, pt1=tuple(pt0), pt2=tuple(pt0), color=max_val * 2, thickness=10
+    )
+    lines_img = (255 * (lines_img / np.max(lines_img, keepdims=True))).astype(np.uint8)
+
+    return lines_img
 
 
 def list_to_arrays(line, c):

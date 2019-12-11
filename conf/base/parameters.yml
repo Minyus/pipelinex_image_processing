@@ -24,7 +24,7 @@ PIPELINES:
 
       - inputs: img_00
         func:
-          - {=: pipelinex.CvResize, width: 0.2, height: 0.2}
+          - {=: pipelinex.CvResize, dsize: "(512, 512)"}
         outputs: img_01
 
       - inputs: img_01
@@ -36,6 +36,5 @@ PIPELINES:
 
       - inputs: img_02
         func:
-          - {=: pipelinex.CvBGR2Gray, _: }
-          - {=: empty_area.overlay_line_segments}
+          - {=: empty_area.detect_lines_and_estimate_empty_ratio}
         outputs: img_03

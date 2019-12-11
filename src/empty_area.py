@@ -12,7 +12,18 @@ def flatten(ls):
     return list(itertools.chain.from_iterable(ls))
 
 
-def overlay_line_segments(img):
+def detect_lines_and_estimate_empty_ratio(images):
+    if isinstance(images, dict):
+        return {
+            k: _detect_lines_and_estimate_empty_ratio(img) for k, img in images.items()
+        }
+    if isinstance(images, list):
+        return [_detect_lines_and_estimate_empty_ratio(img) for img in images]
+    else:
+        return _detect_lines_and_estimate_empty_ratio(images)
+
+
+def _detect_lines_and_estimate_empty_ratio(img):
 
     lines_img, line_points_list = detect_line_segments(img)
     pt0 = argsmax(lines_img)[::-1]

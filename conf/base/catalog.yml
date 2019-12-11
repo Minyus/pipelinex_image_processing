@@ -10,14 +10,24 @@
   cached: False
 
 img_00:
-  type: pipelinex.OpenCVImagesLocalDataSet
-  filepath: data/input/TRIMG/11.jpg
+  type: pipelinex.ImagesLocalDataSet
+  reverse_color: True
+  load_args:
+    dict_structure: True
+  filepath: "data/input/TRIMG"
 
 data/load/img_01.jpg:
-  type: pipelinex.OpenCVImagesLocalDataSet
+  type: pipelinex.ImagesLocalDataSet
+  reverse_color: True
+  load_args:
+    dict_structure: True
 
 data/load/img_02.jpg:
-  type: pipelinex.OpenCVImagesLocalDataSet
+  type: pipelinex.ImagesLocalDataSet
+  load_args:
+    dict_structure: True
 
 data/load/img_03.jpg:
-  type: pipelinex.OpenCVImagesLocalDataSet
+  type: pipelinex.ImagesLocalDataSet
+  load_args:
+    dict_structure: True

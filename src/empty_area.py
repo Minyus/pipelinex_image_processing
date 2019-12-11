@@ -1,3 +1,5 @@
+import math
+
 import cv2
 from pylsd.lsd import lsd
 import numpy as np
@@ -45,6 +47,7 @@ def overlay_line_segments(img):
             depth_line_points_list.append(line_points)
 
     depth_line_points_list = connect_line_segments(depth_line_points_list, pt0)
+    depth_line_points_list = filter_line_segments(depth_line_points_list, pt0)
 
     depth_line_img = np.zeros_like(img)
     for depth_line_points in depth_line_points_list:
@@ -109,3 +112,40 @@ def connect_line_segments(depth_line_points_list, pt0):
     combined_line_points_list = reduced_line_points_list + connected_line_points_list
     return combined_line_points_list
     # return depth_line_points_list
+
+
+def get_line_length(t):
+    return norm(t[0] - t[1])
+
+
+def filter_line_segments(ls_list, pt0):
+    ls_list.sort(key=get_line_length, reverse=True)
+    top_left_ls_list = []
+    top_right_ls_list = []
+    bottom_left_ls_list = []
+    bottom_right_ls_list = []
+    for points in ls_list:
+        if points[0][1] < pt0[1]:
+            if points[0][0] < pt0[0]:
+                bottom_left_ls_list.append(points)
+            else:
+                bottom_right_ls_list.append(points)
+        else:
+            if points[0][0] < pt0[0]:
+                top_left_ls_list.append(points)
+            else:
+                top_right_ls_list.append(points)
+
+    q_ls_list = [
+        top_left_ls_list,
+        top_right_ls_list,
+        bottom_left_ls_list,
+        bottom_right_ls_list,
+    ]
+
+    ls_list_out = []
+    for q in q_ls_list:
+        if len(q) >= 3:
+            q = q[: int(math.ceil(len(q) * 0.5))]
+        ls_list_out.extend(q)
+    return ls_list_out

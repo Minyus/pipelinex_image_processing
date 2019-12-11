@@ -206,7 +206,7 @@ def visualize_depth_line_img(img, depth_line_points_list=None, container_box=Non
             dict(pt1=(x_max, y_min), pt2=(x_min, y_min)),
         ]
         for edge in edges:
-            depth_line_img = cv2.line(depth_line_img, color=255, thickness=1, **edge)
+            depth_line_img = cv2.line(depth_line_img, color=127, thickness=1, **edge)
 
     return depth_line_img
 

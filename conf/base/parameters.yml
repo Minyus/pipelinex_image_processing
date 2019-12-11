@@ -26,8 +26,8 @@ PIPELINES:
         func:
           - {=: pipelinex.CvResize, width: 0.2, height: 0.2}
           - {=: pipelinex.CvBGR2Gray, _: }
-#          - {=: pipelinex.CvGaussianBlur, ksize: "(5, 5)", sigmaX: 5}
-          - {=: pipelinex.CvCanny, threshold1: 50, threshold2: 150, apertureSize: 3}
+          - {=: pipelinex.CvGaussianBlur, ksize: "(3, 3)", sigmaX: 3}
+          - {=: pipelinex.CvCanny, threshold1: 30, threshold2: 150, apertureSize: 7}
         outputs: img_02
 
       - inputs: img_02

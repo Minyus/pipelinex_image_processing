@@ -22,9 +22,13 @@ PIPELINES:
     decorator: pipelinex.log_time
     nodes:
 
-      - inputs: img_01
+      - inputs: img_00
         func:
           - {=: pipelinex.CvResize, width: 0.2, height: 0.2}
+        outputs: img_01
+
+      - inputs: img_01
+        func:
           - {=: pipelinex.CvBGR2Gray, _: }
           - {=: pipelinex.CvGaussianBlur, ksize: "(5, 5)", sigmaX: 1}
           - {=: pipelinex.CvCanny, threshold1: 10, threshold2: 150, apertureSize: 3}

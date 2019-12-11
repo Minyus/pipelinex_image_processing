@@ -9,9 +9,12 @@
 #  type: kedro.contrib.io.yaml_local.YAMLLocalDataSet
   cached: False
 
-img_01:
+img_00:
   type: pipelinex.OpenCVImagesLocalDataSet
   filepath: data/input/TRIMG/11.jpg
+
+data/load/img_01.jpg:
+  type: pipelinex.OpenCVImagesLocalDataSet
 
 data/load/img_02.jpg:
   type: pipelinex.OpenCVImagesLocalDataSet

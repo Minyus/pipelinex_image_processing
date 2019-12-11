@@ -44,7 +44,7 @@ def overlay_line_segments(img):
         if depth_flag:
             depth_line_points_list.append(line_points)
 
-    depth_line_points_list = connect_line_segments(depth_line_points_list)
+    depth_line_points_list = connect_line_segments(depth_line_points_list, pt0)
 
     depth_line_img = np.zeros_like(img)
     for depth_line_points in depth_line_points_list:
@@ -74,15 +74,15 @@ def argsmax(a):
     return np.unravel_index(np.argmax(a, axis=None), a.shape)
 
 
-def connect_line_segments(depth_line_points_list):
+def connect_line_segments(depth_line_points_list, pt0):
 
     n_lines = len(depth_line_points_list)
 
     polar_pt1_list = [
-        cmath.polar(complex(*tuple(pt1))) for pt1, _ in depth_line_points_list
+        cmath.polar(complex(*tuple(pt1 - pt0))) for pt1, _ in depth_line_points_list
     ]
     polar_pt2_list = [
-        cmath.polar(complex(*tuple(pt2))) for _, pt2 in depth_line_points_list
+        cmath.polar(complex(*tuple(pt2 - pt0))) for _, pt2 in depth_line_points_list
     ]
 
     connected_line_points_list = []
@@ -92,8 +92,8 @@ def connect_line_segments(depth_line_points_list):
             polar_pt1 = polar_pt1_list[i]
             polar_pt2 = polar_pt2_list[j]
             if (
-                (i < j)
-                and (abs(polar_pt2[0] - polar_pt1[0]) < 60)
+                (i != j)
+                and (0 < (polar_pt1[0] - polar_pt2[0]) < 100)
                 and (abs(polar_pt2[1] - polar_pt1[1]) < (np.pi / 180))
             ):
                 points = (depth_line_points_list[j][0], depth_line_points_list[i][1])
@@ -107,5 +107,5 @@ def connect_line_segments(depth_line_points_list):
     ]
 
     combined_line_points_list = reduced_line_points_list + connected_line_points_list
-    # return combined_line_points_list
-    return depth_line_points_list
+    return combined_line_points_list
+    # return depth_line_points_list

@@ -9,6 +9,31 @@ import cmath
 
 def overlay_line_segments(img):
 
+    lines_img, line_points_list = detect_line_segments(img)
+
+    pt0 = argsmax(lines_img)[::-1]
+
+    max_val = int(np.max(lines_img))
+    lines_img = cv2.line(
+        lines_img, pt1=tuple(pt0), pt2=tuple(pt0), color=max_val * 2, thickness=10
+    )
+    lines_img = (255 * (lines_img / np.max(lines_img, keepdims=True))).astype(np.uint8)
+
+    depth_line_points_list = extract_depth_line_segments(line_points_list, pt0)
+    depth_line_points_list = connect_line_segments(depth_line_points_list, pt0)
+    depth_line_points_list = filter_line_segments(depth_line_points_list, pt0)
+
+    depth_line_img = np.zeros_like(img)
+    for depth_line_points in depth_line_points_list:
+        pt1, pt2 = depth_line_points
+        depth_line_img = cv2.line(
+            depth_line_img, pt1=tuple(pt1), pt2=tuple(pt2), color=255, thickness=1
+        )
+    return depth_line_img
+
+
+def detect_line_segments(img):
+
     lines = lsd(img)
     h, w = img.shape
     s = np.array([w, h])
@@ -27,25 +52,8 @@ def overlay_line_segments(img):
             lines_img += line_img
             line_points_list.append((pt1, pt2))
     lines_img = cv2.GaussianBlur(lines_img, ksize=(51, 51), sigmaX=51)
-    pt0_yx = argsmax(lines_img)
-    pt0 = pt0_yx[::-1]
-    max_val = int(np.max(lines_img))
-    lines_img = cv2.line(
-        lines_img, pt1=tuple(pt0), pt2=tuple(pt0), color=max_val * 2, thickness=10
-    )
-    lines_img = (255 * (lines_img / np.max(lines_img, keepdims=True))).astype(np.uint8)
 
-    depth_line_points_list = extract_depth_line_segments(line_points_list, pt0)
-    depth_line_points_list = connect_line_segments(depth_line_points_list, pt0)
-    depth_line_points_list = filter_line_segments(depth_line_points_list, pt0)
-
-    depth_line_img = np.zeros_like(img)
-    for depth_line_points in depth_line_points_list:
-        pt1, pt2 = depth_line_points
-        depth_line_img = cv2.line(
-            depth_line_img, pt1=tuple(pt1), pt2=tuple(pt2), color=255, thickness=1
-        )
-    return depth_line_img
+    return lines_img, line_points_list
 
 
 def list_to_arrays(line, c):

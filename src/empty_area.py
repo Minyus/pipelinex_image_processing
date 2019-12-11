@@ -35,17 +35,7 @@ def overlay_line_segments(img):
     )
     lines_img = (255 * (lines_img / np.max(lines_img, keepdims=True))).astype(np.uint8)
 
-    depth_line_points_list = []
-    for line_points in line_points_list:
-        pt1, pt2 = line_points
-        v12 = pt2 - pt1
-        nv12 = v12 / norm(v12)
-        v01 = pt1 - pt0
-        cross_dist = np.abs(nv12[0] * v01[1] - nv12[1] * v01[0])
-        depth_flag = cross_dist < 10
-        if depth_flag:
-            depth_line_points_list.append(line_points)
-
+    depth_line_points_list = extract_depth_line_segments(line_points_list, pt0)
     depth_line_points_list = connect_line_segments(depth_line_points_list, pt0)
     depth_line_points_list = filter_line_segments(depth_line_points_list, pt0)
 
@@ -75,6 +65,20 @@ def extend(pt1, pt2, scale=1):
 
 def argsmax(a):
     return np.unravel_index(np.argmax(a, axis=None), a.shape)
+
+
+def extract_depth_line_segments(line_points_list, pt0):
+    depth_line_points_list = []
+    for line_points in line_points_list:
+        pt1, pt2 = line_points
+        v12 = pt2 - pt1
+        nv12 = v12 / norm(v12)
+        v01 = pt1 - pt0
+        cross_dist = np.abs(nv12[0] * v01[1] - nv12[1] * v01[0])
+        depth_flag = cross_dist < 10
+        if depth_flag:
+            depth_line_points_list.append(line_points)
+    return depth_line_points_list
 
 
 def connect_line_segments(depth_line_points_list, pt0):

@@ -15,13 +15,7 @@ def overlay_line_segments(img):
     depth_line_points_list = extract_depth_line_segments(line_points_list, pt0)
     depth_line_points_list = connect_line_segments(depth_line_points_list, pt0)
     depth_line_points_list = filter_line_segments(depth_line_points_list, pt0)
-
-    depth_line_img = np.zeros_like(img)
-    for depth_line_points in depth_line_points_list:
-        pt1, pt2 = depth_line_points
-        depth_line_img = cv2.line(
-            depth_line_img, pt1=tuple(pt1), pt2=tuple(pt2), color=255, thickness=1
-        )
+    depth_line_img = visualize_depth_line_img(depth_line_points_list, img)
     return depth_line_img
 
 
@@ -164,3 +158,14 @@ def filter_line_segments(ls_list, pt0):
             q = q[: int(math.ceil(len(q) * 0.5))]
         ls_list_out.extend(q)
     return ls_list_out
+
+
+def visualize_depth_line_img(depth_line_points_list, img):
+    depth_line_img = np.zeros_like(img)
+    for depth_line_points in depth_line_points_list:
+        pt1, pt2 = depth_line_points
+        depth_line_img = cv2.line(
+            depth_line_img, pt1=tuple(pt1), pt2=tuple(pt2), color=255, thickness=1
+        )
+
+    return depth_line_img

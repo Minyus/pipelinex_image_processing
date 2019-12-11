@@ -11,11 +11,14 @@ def overlay_line_segments(img):
 
     lines_img, line_points_list = detect_line_segments(img)
     pt0 = argsmax(lines_img)[::-1]
-    # lines_img = visualize_lines_img(lines_img)
+    # lines_img = visualize_lines_img(lines_img, pt0)
     depth_line_points_list = extract_depth_line_segments(line_points_list, pt0)
     depth_line_points_list = connect_line_segments(depth_line_points_list, pt0)
     depth_line_points_list = filter_line_segments(depth_line_points_list, pt0)
-    depth_line_img = visualize_depth_line_img(depth_line_points_list, img)
+    container_box = estimate_container_box(depth_line_points_list)
+    depth_line_img = visualize_depth_line_img(
+        img, depth_line_points_list, container_box
+    )
     return depth_line_img
 
 
@@ -43,7 +46,7 @@ def detect_line_segments(img):
     return lines_img, line_points_list
 
 
-def visualize_lines_img(lines_img):
+def visualize_lines_img(lines_img, pt0):
     max_val = int(np.max(lines_img))
     lines_img = cv2.line(
         lines_img, pt1=tuple(pt0), pt2=tuple(pt0), color=max_val * 2, thickness=10
@@ -160,12 +163,37 @@ def filter_line_segments(ls_list, pt0):
     return ls_list_out
 
 
-def visualize_depth_line_img(depth_line_points_list, img):
+def estimate_container_box(ls_list):
+    pt2_x_list = [pt2[0] for _, pt2 in ls_list]
+    pt2_y_list = [pt2[1] for _, pt2 in ls_list]
+
+    pt2_x_list.sort()
+    pt2_y_list.sort()
+
+    x_min = int(np.mean(np.array(pt2_x_list[:2])))
+    y_min = int(np.mean(np.array(pt2_y_list[:2])))
+    x_max = int(np.mean(np.array(pt2_x_list[-2:])))
+    y_max = int(np.mean(np.array(pt2_y_list[-2:])))
+    return x_min, y_min, x_max, y_max
+
+
+def visualize_depth_line_img(img, depth_line_points_list=None, container_box=None):
     depth_line_img = np.zeros_like(img)
-    for depth_line_points in depth_line_points_list:
-        pt1, pt2 = depth_line_points
-        depth_line_img = cv2.line(
-            depth_line_img, pt1=tuple(pt1), pt2=tuple(pt2), color=255, thickness=1
-        )
+    if depth_line_points_list is not None:
+        for depth_line_points in depth_line_points_list:
+            pt1, pt2 = depth_line_points
+            depth_line_img = cv2.line(
+                depth_line_img, pt1=tuple(pt1), pt2=tuple(pt2), color=255, thickness=1
+            )
+    if container_box is not None:
+        x_min, y_min, x_max, y_max = container_box
+        edges = [
+            dict(pt1=(x_min, y_min), pt2=(x_min, y_max)),
+            dict(pt1=(x_min, y_max), pt2=(x_max, y_max)),
+            dict(pt1=(x_max, y_max), pt2=(x_max, y_min)),
+            dict(pt1=(x_max, y_min), pt2=(x_min, y_min)),
+        ]
+        for edge in edges:
+            depth_line_img = cv2.line(depth_line_img, color=255, thickness=1, **edge)
 
     return depth_line_img

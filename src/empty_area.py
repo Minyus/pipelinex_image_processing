@@ -10,7 +10,7 @@ def overlay_line_segments(img):
     h, w = img.shape
     s = np.array([w, h])
     c = s / 2
-    min_length = 0.02 * w
+    min_length = 0.001 * w
     zeros = np.zeros_like(img)
     lines_img = np.zeros_like(img)
     line_points_list = []

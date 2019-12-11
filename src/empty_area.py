@@ -5,6 +5,11 @@ from pylsd.lsd import lsd
 import numpy as np
 from numpy.linalg import norm
 import cmath
+import itertools
+
+
+def flatten(ls):
+    return list(itertools.chain.from_iterable(ls))
 
 
 def overlay_line_segments(img):
@@ -14,11 +19,15 @@ def overlay_line_segments(img):
     # lines_img = visualize_lines_img(lines_img, pt0)
     depth_line_points_list = extract_depth_line_segments(line_points_list, pt0)
     depth_line_points_list = connect_line_segments(depth_line_points_list, pt0)
-    depth_line_points_list = filter_line_segments(depth_line_points_list, pt0)
-    container_box = estimate_container_box(depth_line_points_list)
+    q_depth_line_points_list = filter_line_segments(depth_line_points_list, pt0)
+    container_box = estimate_container_box(flatten(q_depth_line_points_list))
     depth_line_img = visualize_depth_line_img(
-        img, depth_line_points_list, container_box
+        img, flatten(q_depth_line_points_list), container_box
     )
+    empty_area_ratio = estimate_empty_area_ratio(
+        q_depth_line_points_list, container_box, pt0
+    )
+    print("empty_area_ratio: {}".format(empty_area_ratio))
     return depth_line_img
 
 
@@ -130,7 +139,7 @@ def get_line_length(t):
     return norm(t[0] - t[1])
 
 
-def filter_line_segments(ls_list, pt0):
+def filter_line_segments(ls_list, pt0, flat=False):
     ls_list.sort(key=get_line_length, reverse=True)
     top_left_ls_list = []
     top_right_ls_list = []
@@ -159,7 +168,10 @@ def filter_line_segments(ls_list, pt0):
     for q in q_ls_list:
         if len(q) >= 3:
             q = q[: int(math.ceil(len(q) * 0.5))]
-        ls_list_out.extend(q)
+        if flat:
+            ls_list_out.extend(q)
+        else:
+            ls_list_out.append(q)
     return ls_list_out
 
 
@@ -197,3 +209,26 @@ def visualize_depth_line_img(img, depth_line_points_list=None, container_box=Non
             depth_line_img = cv2.line(depth_line_img, color=255, thickness=1, **edge)
 
     return depth_line_img
+
+
+def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
+    x_min, y_min, x_max, y_max = container_box
+
+    def get_distance_from_pt0(points):
+        return norm(points[0] - pt0)
+
+    q_depth_ratio_list = []
+    for depth_line_points_list in q_depth_line_points_list:
+        depth_line_points_list.sort(key=get_distance_from_pt0)
+        pt1, _ = depth_line_points_list[0]
+        pt10x = pt1[0] - pt0[0]
+        pt10y = pt1[1] - pt0[1]
+        if pt10x < 0:
+            depth_ratio = -pt10x / (pt0[0] - x_min)
+        else:
+            depth_ratio = pt10x / (x_max - pt0[0])
+        q_depth_ratio_list.append(depth_ratio)
+
+    left_empty_area_ratio = q_depth_ratio_list[2] / q_depth_ratio_list[0]
+    right_empty_area_ratio = q_depth_ratio_list[3] / q_depth_ratio_list[1]
+    return (left_empty_area_ratio + right_empty_area_ratio) / 2

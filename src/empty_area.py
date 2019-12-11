@@ -2,6 +2,7 @@ import cv2
 from pylsd.lsd import lsd
 import numpy as np
 from numpy.linalg import norm
+import cmath
 
 
 def overlay_line_segments(img):
@@ -10,7 +11,7 @@ def overlay_line_segments(img):
     h, w = img.shape
     s = np.array([w, h])
     c = s / 2
-    min_length = 0.001 * w
+    min_length = 0.02 * w
     zeros = np.zeros_like(img)
     lines_img = np.zeros_like(img)
     line_points_list = []
@@ -43,6 +44,8 @@ def overlay_line_segments(img):
         if depth_flag:
             depth_line_points_list.append(line_points)
 
+    depth_line_points_list = connect_line_segments(depth_line_points_list)
+
     depth_line_img = np.zeros_like(img)
     for depth_line_points in depth_line_points_list:
         pt1, pt2 = depth_line_points
@@ -69,3 +72,40 @@ def extend(pt1, pt2, scale=1):
 
 def argsmax(a):
     return np.unravel_index(np.argmax(a, axis=None), a.shape)
+
+
+def connect_line_segments(depth_line_points_list):
+
+    n_lines = len(depth_line_points_list)
+
+    polar_pt1_list = [
+        cmath.polar(complex(*tuple(pt1))) for pt1, _ in depth_line_points_list
+    ]
+    polar_pt2_list = [
+        cmath.polar(complex(*tuple(pt2))) for _, pt2 in depth_line_points_list
+    ]
+
+    connected_line_points_list = []
+    connected_index_list = []
+    for i in range(n_lines):
+        for j in range(n_lines):
+            polar_pt1 = polar_pt1_list[i]
+            polar_pt2 = polar_pt2_list[j]
+            if (
+                (i < j)
+                and (abs(polar_pt2[0] - polar_pt1[0]) < 60)
+                and (abs(polar_pt2[1] - polar_pt1[1]) < (np.pi / 180))
+            ):
+                points = (depth_line_points_list[j][0], depth_line_points_list[i][1])
+                connected_line_points_list.append(points)
+                connected_index_list.extend([i, j])
+
+    reduced_line_points_list = [
+        depth_line_points_list[i]
+        for i in range(n_lines)
+        if i not in connected_index_list
+    ]
+
+    combined_line_points_list = reduced_line_points_list + connected_line_points_list
+    # return combined_line_points_list
+    return depth_line_points_list

@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 def detect_lines_and_estimate_empty_ratio(img):
 
     intersection_img, line_points_list = detect_line_segments(img)
-    pt0 = get_cross_point(intersection_img)
+    pt0 = get_vanishing_point(intersection_img)
     depth_line_points_list = extract_depth_line_segments(line_points_list, pt0)
     depth_line_points_list = connect_line_segments(depth_line_points_list, pt0)
     q_depth_line_points_list = extract_q_line_segments(depth_line_points_list, pt0)
@@ -87,7 +87,7 @@ def detect_line_segments(img):
 
 
 def visualize_lines_img(lines_img):
-    pt0 = get_cross_point(lines_img)
+    pt0 = get_vanishing_point(lines_img)
     max_val = int(np.max(lines_img))
     lines_img = cv2.line(
         lines_img, pt1=tuple(pt0), pt2=tuple(pt0), color=max_val * 2, thickness=10
@@ -116,7 +116,7 @@ def argsmax(a):
     return np.unravel_index(np.argmax(a, axis=None), a.shape)
 
 
-def get_cross_point(a):
+def get_vanishing_point(a):
     return argsmax(a)[::-1]
 
 

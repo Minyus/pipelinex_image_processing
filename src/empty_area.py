@@ -34,19 +34,17 @@ def _detect_lines_and_estimate_empty_ratio(img):
 
     ext_lines_img, line_points_list = detect_line_segments(img)
     pt0 = get_cross_point(ext_lines_img)
-    # vis_ext_lines_img = visualize_lines_img(ext_lines_img, pt0)
     depth_line_points_list = extract_depth_line_segments(line_points_list, pt0)
     depth_line_points_list = connect_line_segments(depth_line_points_list, pt0)
     q_depth_line_points_list = extract_q_line_segments(depth_line_points_list, pt0)
     container_box = estimate_container_box(q_depth_line_points_list)
-    depth_line_img = visualize_depth_line_img(
-        img, q_depth_line_points_list, container_box
-    )
     empty_ratio_dict = estimate_empty_area_ratio(
         q_depth_line_points_list, container_box, pt0
     )
-
-    return empty_ratio_dict, depth_line_img
+    vis_depth_line_img = visualize_depth_line_img(
+        img, q_depth_line_points_list, container_box
+    )
+    return empty_ratio_dict, vis_depth_line_img
 
 
 def detect_line_segments(img):

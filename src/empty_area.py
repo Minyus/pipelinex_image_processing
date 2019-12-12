@@ -51,7 +51,8 @@ def detect_line_segments(img):
     return ext_lines_img, line_points_list
 
 
-def visualize_lines_img(lines_img, pt0):
+def visualize_lines_img(lines_img):
+    pt0 = get_cross_point(lines_img)
     max_val = int(np.max(lines_img))
     lines_img = cv2.line(
         lines_img, pt1=tuple(pt0), pt2=tuple(pt0), color=max_val * 2, thickness=10

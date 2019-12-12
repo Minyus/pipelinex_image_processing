@@ -6,6 +6,9 @@ import numpy as np
 from numpy.linalg import norm
 import cmath
 import itertools
+import logging
+
+log = logging.getLogger(__name__)
 
 
 def flatten(ls):
@@ -14,11 +17,16 @@ def flatten(ls):
 
 def detect_lines_and_estimate_empty_ratio(images):
     if isinstance(images, dict):
-        return {
-            k: _detect_lines_and_estimate_empty_ratio(img) for k, img in images.items()
-        }
-    if isinstance(images, list):
-        return [_detect_lines_and_estimate_empty_ratio(img) for img in images]
+        empty_ratios_dict = {}
+        images_dict = {}
+        for k, img in images.items():
+            log.info("Image: {}".format(k))
+            empty_ratio_dict, img = _detect_lines_and_estimate_empty_ratio(img)
+            empty_ratios_dict[k] = empty_ratio_dict
+            images_dict[k] = img
+            log.info("{}".format(empty_ratio_dict))
+        return empty_ratios_dict, images_dict
+
     else:
         return _detect_lines_and_estimate_empty_ratio(images)
 
@@ -38,8 +46,8 @@ def _detect_lines_and_estimate_empty_ratio(img):
     empty_ratio_dict = estimate_empty_area_ratio(
         q_depth_line_points_list, container_box, pt0
     )
-    print("empty_area_ratio: \n {}".format(empty_ratio_dict))
-    return depth_line_img
+
+    return empty_ratio_dict, depth_line_img
 
 
 def detect_line_segments(img):
@@ -223,28 +231,32 @@ def visualize_depth_line_img(img, depth_line_points_list=None, container_box=Non
 
 
 def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
+    empty_ratio_dict = dict(empty_ratio=0, left_empty_ratio=0, right_empty_ratio=0)
     x_min, y_min, x_max, y_max = container_box
 
     top_depth_line_points_list = (
         q_depth_line_points_list[0] + q_depth_line_points_list[1]
     )
-    top_y = max([pt1[1] for pt1, _ in top_depth_line_points_list])
-    top_ratio = (top_y - y_min) / (pt0[1] - y_min)
+    if top_depth_line_points_list:
+        top_y = max([pt1[1] for pt1, _ in top_depth_line_points_list])
+        top_ratio = (top_y - y_min) / (pt0[1] - y_min)
 
-    bottom_left_line_points_list = q_depth_line_points_list[2]
-    bottom_left_x = max([pt1[0] for pt1, _ in bottom_left_line_points_list])
-    bottom_left_ratio = (bottom_left_x - x_min) / (pt0[0] - x_min)
-    left_empty_ratio = min(1.0, bottom_left_ratio / top_ratio)
+        bottom_left_line_points_list = q_depth_line_points_list[2]
+        if bottom_left_line_points_list:
+            bottom_left_x = max([pt1[0] for pt1, _ in bottom_left_line_points_list])
+            bottom_left_ratio = (bottom_left_x - x_min) / (pt0[0] - x_min)
+            left_empty_ratio = min(1.0, bottom_left_ratio / top_ratio)
+            empty_ratio_dict["left_empty_ratio"] = left_empty_ratio
 
-    bottom_right_line_points_list = q_depth_line_points_list[3]
-    bottom_right_x = min([pt1[0] for pt1, _ in bottom_right_line_points_list])
-    bottom_right_ratio = (x_max - bottom_right_x) / (x_max - pt0[0])
-    right_empty_ratio = min(1.0, bottom_right_ratio / top_ratio)
+        bottom_right_line_points_list = q_depth_line_points_list[3]
+        if bottom_right_line_points_list:
+            bottom_right_x = min([pt1[0] for pt1, _ in bottom_right_line_points_list])
+            bottom_right_ratio = (x_max - bottom_right_x) / (x_max - pt0[0])
+            right_empty_ratio = min(1.0, bottom_right_ratio / top_ratio)
+            empty_ratio_dict["right_empty_ratio"] = right_empty_ratio
 
-    empty_ratio = (left_empty_ratio + right_empty_ratio) / 2
-    empty_ratio_dict = dict(
-        empty_ratio=empty_ratio,
-        left_empty_ratio=left_empty_ratio,
-        right_empty_ratio=right_empty_ratio,
-    )
+    empty_ratio_dict["empty_ratio"] = (
+        empty_ratio_dict["left_empty_ratio"] + empty_ratio_dict["right_empty_ratio"]
+    ) / 2
+
     return empty_ratio_dict

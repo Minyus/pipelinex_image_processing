@@ -37,4 +37,4 @@ PIPELINES:
       - inputs: img_02
         func:
           - {=: empty_area.detect_lines_and_estimate_empty_ratio}
-        outputs: img_03
+        outputs: [empty_ratios_dict, img_03]

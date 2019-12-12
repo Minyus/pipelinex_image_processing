@@ -88,11 +88,10 @@ def detect_line_segments(img):
 
 def visualize_lines_img(lines_img):
     pt0 = get_vanishing_point(lines_img)
-    max_val = int(np.max(lines_img))
+    lines_img = (127 * (lines_img / np.max(lines_img, keepdims=True))).astype(np.uint8)
     lines_img = cv2.line(
-        lines_img, pt1=tuple(pt0), pt2=tuple(pt0), color=max_val * 2, thickness=10
+        lines_img, pt1=tuple(pt0), pt2=tuple(pt0), color=255, thickness=7
     )
-    lines_img = (255 * (lines_img / np.max(lines_img, keepdims=True))).astype(np.uint8)
 
     return lines_img
 

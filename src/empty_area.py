@@ -34,11 +34,11 @@ def detect_line_segments(img):
     lines = lsd(img)
     h, w = img.shape
     s = np.array([w, h])
-    c = s / 2
+    center_point = s / 2
     min_length = 0.02 * w
     line_points_list = []
     for line in lines:
-        pt1, pt2 = list_to_arrays(line, c)
+        pt1, pt2 = list_to_arrays(line, center_point)
         pt12 = pt2 - pt1
         if min_length < norm(pt12) < 0.9 * norm(pt12, ord=1):
             line_points_list.append((pt1, pt2))
@@ -50,9 +50,9 @@ def detect_line_segments(img):
     ac_list = []
     for pt1, pt2 in line_points_list:
         pt12 = pt2 - pt1
-        a = np.array([pt12[1], -pt12[0]])
-        c = pt12[1] * pt1[0] - pt12[0] * pt1[1]
-        ac_list.append((a, c))
+        a_ = np.array([pt12[1], -pt12[0]])
+        c_ = pt12[1] * pt1[0] - pt12[0] * pt1[1]
+        ac_list.append((a_, c_))
 
     n_lines = len(ac_list)
     intersection_point_list = []
@@ -66,23 +66,31 @@ def detect_line_segments(img):
             ):
                 a_i, c_i = ac_list[i]
                 a_j, c_j = ac_list[j]
-                a = np.stack([a_i, a_j])
-                c = np.array([c_i, c_j])
-                det = np.linalg.det(a)
-                intersection_point = np.matmul(np.linalg.inv(a), c)
+                a_2darr = np.stack([a_i, a_j])
+                c_arr = np.array([c_i, c_j])
+                det = np.linalg.det(a_2darr)
+                intersection_point = np.matmul(np.linalg.inv(a_2darr), c_arr)
                 if 0 <= intersection_point[0] < w and 0 <= intersection_point[1] < h:
                     intersection_point_list.append(intersection_point)
 
     intersection_arr = np.stack(intersection_point_list)
     intersection_x_arr = intersection_arr[:, 0]
     intersection_y_arr = intersection_arr[:, 1]
-    vals = np.ones_like(intersection_x_arr) / intersection_arr.shape[0]
+
+    center_point_2darr = np.expand_dims(center_point, axis=0)
+    vals_arr = (
+        np.exp(
+            -0.5
+            * np.square(norm(intersection_arr - center_point_2darr, axis=1) / (w / 4))
+        )
+        / intersection_arr.shape[0]
+    )
 
     intersection_coo = coo_matrix(
-        (vals, (intersection_y_arr, intersection_x_arr)), shape=img.shape
+        (vals_arr, (intersection_y_arr, intersection_x_arr)), shape=img.shape
     )
     intersection_img = intersection_coo.todense()
-    intersection_img = cv2.GaussianBlur(intersection_img, ksize=(21, 21), sigmaX=5)
+    intersection_img = cv2.GaussianBlur(intersection_img, ksize=(21, 21), sigmaX=10)
     return intersection_img, line_points_list
 
 
@@ -212,6 +220,8 @@ def extract_q_line_segments(ls_list, pt0, flat=False):
 
 def estimate_container_box(ls_list):
     ls_list = flatten(ls_list)
+    if not ls_list:
+        return 0, 0, 0, 0
     pt2_x_list = [pt2[0] for _, pt2 in ls_list]
     pt2_y_list = [pt2[1] for _, pt2 in ls_list]
 

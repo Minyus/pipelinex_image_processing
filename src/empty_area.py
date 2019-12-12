@@ -70,7 +70,15 @@ def detect_line_segments(img):
                 c_arr = np.array([c_i, c_j])
                 det = np.linalg.det(a_2darr)
                 intersection_point = np.matmul(np.linalg.inv(a_2darr), c_arr)
-                if 0 <= intersection_point[0] < w and 0 <= intersection_point[1] < h:
+
+                dist_pt1_from_center = min(
+                    norm(line_points_list[i][0] - center_point),
+                    norm(line_points_list[j][0] - center_point),
+                )
+                intersection_close_enough_to_center_flag = (
+                    norm(intersection_point - center_point) < 0.7 * dist_pt1_from_center
+                )
+                if intersection_close_enough_to_center_flag:
                     intersection_point_list.append(intersection_point)
 
     intersection_arr = np.stack(intersection_point_list)

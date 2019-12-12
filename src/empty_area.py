@@ -1,5 +1,4 @@
 import math
-
 import cv2
 from pylsd.lsd import lsd
 import numpy as np
@@ -11,26 +10,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def flatten(ls):
-    return list(itertools.chain.from_iterable(ls))
-
-
-def detect_lines_and_estimate_empty_ratio(images):
-    if isinstance(images, dict):
-        empty_ratios_dict = {}
-        images_dict = {}
-        for k, img in images.items():
-            empty_ratio_dict, img = _detect_lines_and_estimate_empty_ratio(img)
-            empty_ratios_dict[k] = empty_ratio_dict
-            images_dict[k] = img
-            log.info("Image: {:>2} >> {}".format(k, empty_ratio_dict))
-        return empty_ratios_dict, images_dict
-
-    else:
-        return _detect_lines_and_estimate_empty_ratio(images)
-
-
-def _detect_lines_and_estimate_empty_ratio(img):
+def detect_lines_and_estimate_empty_ratio(img):
 
     ext_lines_img, line_points_list = detect_line_segments(img)
     pt0 = get_cross_point(ext_lines_img)
@@ -44,7 +24,7 @@ def _detect_lines_and_estimate_empty_ratio(img):
     vis_depth_line_img = visualize_depth_line_img(
         img, q_depth_line_points_list, container_box
     )
-    return empty_ratio_dict, vis_depth_line_img
+    return empty_ratio_dict, ext_lines_img, vis_depth_line_img
 
 
 def detect_line_segments(img):
@@ -263,3 +243,7 @@ def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
     ) / 2
 
     return empty_ratio_dict
+
+
+def flatten(ls):
+    return list(itertools.chain.from_iterable(ls))

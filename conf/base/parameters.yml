@@ -35,9 +35,9 @@ PIPELINES:
         outputs: img_02
 
       - inputs: img_02
-        func:
-          - {=: empty_area.detect_lines_and_estimate_empty_ratio}
-        outputs: [empty_ratios_dict, img_03]
+        decorator: {=: pipelinex.dict_io}
+        func: {=: empty_area.detect_lines_and_estimate_empty_ratio}
+        outputs: [empty_ratios_dict, img_03, img_04]
 
       - inputs: empty_ratios_dict
         func: {=: pipelinex.NestedDictToDf, index_name: image}

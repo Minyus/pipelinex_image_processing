@@ -143,7 +143,7 @@ def extract_depth_line_segments(line_points_list, pt0):
         nv12 = v12 / norm(v12)
         v01 = pt1 - pt0
         dist_vanishing_point = np.abs(nv12[0] * v01[1] - nv12[1] * v01[0])
-        depth_flag = dist_vanishing_point < 20
+        depth_flag = dist_vanishing_point < 30
         if depth_flag:
             depth_line_points_list.append(line_points)
     return depth_line_points_list

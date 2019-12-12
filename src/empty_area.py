@@ -76,7 +76,7 @@ def detect_line_segments(img):
     intersection_arr = np.stack(intersection_point_list)
     intersection_x_arr = intersection_arr[:, 0]
     intersection_y_arr = intersection_arr[:, 1]
-    vals = np.ones_like(intersection_x_arr)
+    vals = np.ones_like(intersection_x_arr) / intersection_arr.shape[0]
 
     intersection_coo = coo_matrix(
         (vals, (intersection_y_arr, intersection_x_arr)), shape=img.shape

@@ -32,7 +32,7 @@ PIPELINES:
           - {=: pipelinex.CvBGR2Gray, _: }
           - {=: pipelinex.CvEqualizeHist, _: }
           - {=: pipelinex.CvGaussianBlur, ksize: "(5, 5)", sigmaX: 3}
-          - {=: pipelinex.CvCanny, threshold1: 3, threshold2: 10, apertureSize: 3}
+          - {=: pipelinex.CvCanny, threshold1: 1, threshold2: 3, apertureSize: 3}
         outputs: img_02
 
       - inputs: img_02

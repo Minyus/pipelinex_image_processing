@@ -32,5 +32,5 @@ data/load/img_03.jpg:
   load_args:
     dict_structure: True
 
-data/load/empty_ratios_dict.yml:
-  type: kedro.contrib.io.yaml_local.YAMLLocalDataSet
+data/load/empty_ratios_df.csv:
+  type: CSVLocalDataSet

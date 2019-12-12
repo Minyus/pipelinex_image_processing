@@ -35,7 +35,7 @@ def detect_line_segments(img):
     h, w = img.shape
     s = np.array([w, h])
     center_point = s / 2
-    min_length = 0.02 * w
+    min_length = 0.01 * w
     line_points_list = []
     for line in lines:
         pt1, pt2 = list_to_arrays(line, center_point)

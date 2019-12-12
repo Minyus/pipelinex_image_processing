@@ -20,11 +20,10 @@ def detect_lines_and_estimate_empty_ratio(images):
         empty_ratios_dict = {}
         images_dict = {}
         for k, img in images.items():
-            log.info("Image: {}".format(k))
             empty_ratio_dict, img = _detect_lines_and_estimate_empty_ratio(img)
             empty_ratios_dict[k] = empty_ratio_dict
             images_dict[k] = img
-            log.info("{}".format(empty_ratio_dict))
+            log.info("Image: {:>2} >> {}".format(k, empty_ratio_dict))
         return empty_ratios_dict, images_dict
 
     else:

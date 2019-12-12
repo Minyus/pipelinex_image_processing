@@ -30,6 +30,7 @@ PIPELINES:
       - inputs: img_01
         func:
           - {=: pipelinex.CvBGR2Gray, _: }
+          - {=: pipelinex.CvEqualizeHist, _: }
           - {=: pipelinex.CvGaussianBlur, ksize: "(5, 5)", sigmaX: 1}
           - {=: pipelinex.CvCanny, threshold1: 10, threshold2: 150, apertureSize: 3}
         outputs: img_02

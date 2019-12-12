@@ -244,14 +244,14 @@ def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
         bottom_left_line_points_list = q_depth_line_points_list[2]
         if bottom_left_line_points_list:
             bottom_left_x = max([pt1[0] for pt1, _ in bottom_left_line_points_list])
-            bottom_left_ratio = (bottom_left_x - x_min) / (pt0[0] - x_min)
+            bottom_left_ratio = max(0.0, (bottom_left_x - x_min) / (pt0[0] - x_min))
             left_empty_ratio = min(1.0, bottom_left_ratio / top_ratio)
             empty_ratio_dict["left_empty_ratio"] = left_empty_ratio
 
         bottom_right_line_points_list = q_depth_line_points_list[3]
         if bottom_right_line_points_list:
             bottom_right_x = min([pt1[0] for pt1, _ in bottom_right_line_points_list])
-            bottom_right_ratio = (x_max - bottom_right_x) / (x_max - pt0[0])
+            bottom_right_ratio = max(0.0, (x_max - bottom_right_x) / (x_max - pt0[0]))
             right_empty_ratio = min(1.0, bottom_right_ratio / top_ratio)
             empty_ratio_dict["right_empty_ratio"] = right_empty_ratio
 

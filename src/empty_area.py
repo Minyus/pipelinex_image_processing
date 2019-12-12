@@ -32,15 +32,15 @@ def detect_lines_and_estimate_empty_ratio(images):
 
 def _detect_lines_and_estimate_empty_ratio(img):
 
-    lines_img, line_points_list = detect_line_segments(img)
-    pt0 = argsmax(lines_img)[::-1]
-    # lines_img = visualize_lines_img(lines_img, pt0)
+    ext_lines_img, line_points_list = detect_line_segments(img)
+    pt0 = get_cross_point(ext_lines_img)
+    # vis_ext_lines_img = visualize_lines_img(ext_lines_img, pt0)
     depth_line_points_list = extract_depth_line_segments(line_points_list, pt0)
     depth_line_points_list = connect_line_segments(depth_line_points_list, pt0)
-    q_depth_line_points_list = filter_line_segments(depth_line_points_list, pt0)
-    container_box = estimate_container_box(flatten(q_depth_line_points_list))
+    q_depth_line_points_list = extract_q_line_segments(depth_line_points_list, pt0)
+    container_box = estimate_container_box(q_depth_line_points_list)
     depth_line_img = visualize_depth_line_img(
-        img, flatten(q_depth_line_points_list), container_box
+        img, q_depth_line_points_list, container_box
     )
     empty_ratio_dict = estimate_empty_area_ratio(
         q_depth_line_points_list, container_box, pt0
@@ -57,7 +57,7 @@ def detect_line_segments(img):
     c = s / 2
     min_length = 0.02 * w
     zeros = np.zeros_like(img)
-    lines_img = np.zeros_like(img)
+    ext_lines_img = np.zeros_like(img)
     line_points_list = []
     for line in lines:
         pt1, pt2 = list_to_arrays(line, c)
@@ -66,11 +66,11 @@ def detect_line_segments(img):
             line_img = cv2.line(
                 zeros, pt1=tuple(pt1), pt2=tuple(pt3), color=1, thickness=5
             )
-            lines_img += line_img
+            ext_lines_img += line_img
             line_points_list.append((pt1, pt2))
-    lines_img = cv2.GaussianBlur(lines_img, ksize=(51, 51), sigmaX=51)
+    ext_lines_img = cv2.GaussianBlur(ext_lines_img, ksize=(51, 51), sigmaX=51)
 
-    return lines_img, line_points_list
+    return ext_lines_img, line_points_list
 
 
 def visualize_lines_img(lines_img, pt0):
@@ -100,6 +100,10 @@ def extend(pt1, pt2, scale=1):
 
 def argsmax(a):
     return np.unravel_index(np.argmax(a, axis=None), a.shape)
+
+
+def get_cross_point(a):
+    return argsmax(a)[::-1]
 
 
 def extract_depth_line_segments(line_points_list, pt0):
@@ -157,7 +161,7 @@ def get_line_length(t):
     return norm(t[0] - t[1])
 
 
-def filter_line_segments(ls_list, pt0, flat=False):
+def extract_q_line_segments(ls_list, pt0, flat=False):
     ls_list.sort(key=get_line_length, reverse=True)
     top_left_ls_list = []
     top_right_ls_list = []
@@ -194,6 +198,7 @@ def filter_line_segments(ls_list, pt0, flat=False):
 
 
 def estimate_container_box(ls_list):
+    ls_list = flatten(ls_list)
     pt2_x_list = [pt2[0] for _, pt2 in ls_list]
     pt2_y_list = [pt2[1] for _, pt2 in ls_list]
 
@@ -207,9 +212,10 @@ def estimate_container_box(ls_list):
     return x_min, y_min, x_max, y_max
 
 
-def visualize_depth_line_img(img, depth_line_points_list=None, container_box=None):
+def visualize_depth_line_img(img, q_depth_line_points_list=None, container_box=None):
     depth_line_img = np.zeros_like(img)
-    if depth_line_points_list is not None:
+    if q_depth_line_points_list is not None:
+        depth_line_points_list = flatten(q_depth_line_points_list)
         for depth_line_points in depth_line_points_list:
             pt1, pt2 = depth_line_points
             depth_line_img = cv2.line(

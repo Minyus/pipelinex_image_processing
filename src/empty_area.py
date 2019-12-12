@@ -7,13 +7,15 @@ import cmath
 import itertools
 import logging
 
+from scipy.sparse import coo_matrix
+
 log = logging.getLogger(__name__)
 
 
 def detect_lines_and_estimate_empty_ratio(img):
 
-    ext_lines_img, line_points_list = detect_line_segments(img)
-    pt0 = get_cross_point(ext_lines_img)
+    intersection_img, line_points_list = detect_line_segments(img)
+    pt0 = get_cross_point(intersection_img)
     depth_line_points_list = extract_depth_line_segments(line_points_list, pt0)
     depth_line_points_list = connect_line_segments(depth_line_points_list, pt0)
     q_depth_line_points_list = extract_q_line_segments(depth_line_points_list, pt0)
@@ -24,7 +26,7 @@ def detect_lines_and_estimate_empty_ratio(img):
     vis_depth_line_img = visualize_depth_line_img(
         img, q_depth_line_points_list, container_box
     )
-    return empty_ratio_dict, ext_lines_img, vis_depth_line_img
+    return empty_ratio_dict, intersection_img, vis_depth_line_img
 
 
 def detect_line_segments(img):
@@ -34,21 +36,54 @@ def detect_line_segments(img):
     s = np.array([w, h])
     c = s / 2
     min_length = 0.02 * w
-    zeros = np.zeros_like(img)
-    ext_lines_img = np.zeros_like(img)
     line_points_list = []
     for line in lines:
         pt1, pt2 = list_to_arrays(line, c)
-        pt1, pt3 = extend(pt1, pt2, scale=-3)
-        if min_length < norm(pt1 - pt2) < 0.8 * norm(pt1 - pt2, ord=1):
-            line_img = cv2.line(
-                zeros, pt1=tuple(pt1), pt2=tuple(pt3), color=1, thickness=5
-            )
-            ext_lines_img += line_img
+        pt12 = pt2 - pt1
+        if min_length < norm(pt12) < 0.8 * norm(pt12, ord=1):
             line_points_list.append((pt1, pt2))
-    ext_lines_img = cv2.GaussianBlur(ext_lines_img, ksize=(51, 51), sigmaX=51)
 
-    return ext_lines_img, line_points_list
+    line_angle_list = [
+        cmath.phase(complex(*tuple(pt2 - pt1))) for pt1, pt2 in line_points_list
+    ]
+
+    ac_list = []
+    for pt1, pt2 in line_points_list:
+        pt12 = pt2 - pt1
+        a = np.array([pt12[1], -pt12[0]])
+        c = pt12[1] * pt1[0] - pt12[0] * pt1[1]
+        ac_list.append((a, c))
+
+    n_lines = len(ac_list)
+    intersection_point_list = []
+    for i in range(n_lines):
+        for j in range(n_lines):
+            if (
+                i > j
+                and 0.05 * np.pi
+                < abs(line_angle_list[i] - line_angle_list[j])
+                < 0.95 * np.pi
+            ):
+                a_i, c_i = ac_list[i]
+                a_j, c_j = ac_list[j]
+                a = np.stack([a_i, a_j])
+                c = np.array([c_i, c_j])
+                det = np.linalg.det(a)
+                intersection_point = np.matmul(np.linalg.inv(a), c)
+                if 0 <= intersection_point[0] < w and 0 <= intersection_point[1] < h:
+                    intersection_point_list.append(intersection_point)
+
+    intersection_arr = np.stack(intersection_point_list)
+    intersection_x_arr = intersection_arr[:, 0]
+    intersection_y_arr = intersection_arr[:, 1]
+    vals = np.ones_like(intersection_x_arr)
+
+    intersection_coo = coo_matrix(
+        (vals, (intersection_y_arr, intersection_x_arr)), shape=img.shape
+    )
+    intersection_img = intersection_coo.todense()
+    intersection_img = cv2.GaussianBlur(intersection_img, ksize=(21, 21), sigmaX=5)
+    return intersection_img, line_points_list
 
 
 def visualize_lines_img(lines_img):

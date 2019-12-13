@@ -75,9 +75,13 @@ def detect_line_segments(img):
                     norm(line_points_list[j][0] - center_point),
                 )
                 intersection_close_enough_to_center_flag = (
-                    norm(intersection_point - center_point) < 0.7 * dist_pt1_from_center
+                    norm(intersection_point - center_point) < 0.8 * dist_pt1_from_center
                 )
-                if intersection_close_enough_to_center_flag:
+                if (
+                    intersection_close_enough_to_center_flag
+                    and (w * 1 / 4) <= intersection_point[0] < (w * 3 / 4)
+                    and (h * 1 / 4) <= intersection_point[1] < (h * 3 / 4)
+                ):
                     intersection_point_list.append(intersection_point)
 
     intersection_arr = np.stack(intersection_point_list)

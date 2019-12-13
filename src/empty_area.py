@@ -40,7 +40,10 @@ def detect_line_segments(img):
     for line in lines:
         pt1, pt2 = list_to_arrays(line, center_point)
         pt12 = pt2 - pt1
-        if min_length < norm(pt12) < 0.9 * norm(pt12, ord=1):
+        if (
+            min_length < norm(pt12) < 0.9 * norm(pt12, ord=1)
+            and norm(pt12, ord=1) < (h + w) / 2
+        ):
             line_points_list.append((pt1, pt2))
 
     line_angle_list = [

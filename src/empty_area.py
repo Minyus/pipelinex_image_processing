@@ -68,7 +68,6 @@ def detect_line_segments(img):
                 a_j, c_j = ac_list[j]
                 a_2darr = np.stack([a_i, a_j])
                 c_arr = np.array([c_i, c_j])
-                det = np.linalg.det(a_2darr)
                 intersection_point = np.matmul(np.linalg.inv(a_2darr), c_arr)
 
                 dist_pt1_from_center = min(

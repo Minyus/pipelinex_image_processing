@@ -31,20 +31,27 @@ PIPELINES:
         func:
           - {=: pipelinex.CvBGR2Gray, _: }
           - {=: pipelinex.CvEqualizeHist, _: }
+#          - {=: pipelinex.CvBlur, ksize: "(5, 5)"}
+#          - {=: pipelinex.CvMedianBlur, ksize: 5}
+#          - {=: pipelinex.CvBilateralFilter, d: 9, sigmaColor: 200, sigmaSpace: 200}
           - {=: pipelinex.CvGaussianBlur, ksize: "(5, 5)", sigmaX: 3}
-          - {=: pipelinex.CvCanny, threshold1: 10, threshold2: 10, apertureSize: 3}
         outputs: img_02
 
       - inputs: img_02
+        func:
+          - {=: pipelinex.CvCanny, threshold1: 10, threshold2: 10, apertureSize: 3}
+        outputs: img_03
+
+      - inputs: img_03
         decorator: {=: pipelinex.dict_io}
         func: {=: empty_area.detect_lines_and_estimate_empty_ratio}
-        outputs: [empty_ratios_dict, img_03_raw, img_04]
+        outputs: [empty_ratios_dict, img_04_raw, img_05]
 
       - inputs: empty_ratios_dict
         func: {=: pipelinex.NestedDictToDf, index_name: image}
         outputs: empty_ratios_df
 
-      - inputs: img_03_raw
+      - inputs: img_04_raw
         decorator: {=: pipelinex.dict_io}
         func: {=: empty_area.visualize_lines_img}
-        outputs: img_03
+        outputs: img_04

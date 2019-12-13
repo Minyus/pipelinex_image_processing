@@ -37,5 +37,10 @@ data/load/img_04.jpg:
   load_args:
     dict_structure: True
 
+data/load/img_05.jpg:
+  type: pipelinex.ImagesLocalDataSet
+  load_args:
+    dict_structure: True
+
 data/load/empty_ratios_df.csv:
   type: CSVLocalDataSet

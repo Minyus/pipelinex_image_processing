@@ -39,7 +39,9 @@ PIPELINES:
 
       - inputs: img_02
         func:
-          - {=: pipelinex.CvCanny, threshold1: 10, threshold2: 10, apertureSize: 3}
+          - {=: pipelinex.CvCanny, threshold1: 10, threshold2: 10, apertureSize: 3, L2gradient: True}
+#          - {=: pipelinex.CvDiagonalEdgeFilter2d, ddepth: -1, kernel_type: 1}
+#          - {=: pipelinex.CvFitToUint8, _: }
         outputs: img_03
 
       - inputs: img_03

@@ -1,4 +1,6 @@
 import math
+from operator import itemgetter
+
 import cv2
 from pylsd.lsd import lsd
 import numpy as np
@@ -25,7 +27,7 @@ def detect_lines_and_estimate_empty_ratio(img, roi):
     front_ceiling_line_points_list = extract_front_ceiling_line_segments(
         line_points_list, pt0
     )
-    empty_ratio_dict = estimate_empty_area_ratio(
+    empty_ratio_dict, selected_points_list = estimate_empty_area_ratio(
         q_depth_line_points_list, container_box, pt0
     )
     report_img = draw_report_img(
@@ -35,6 +37,7 @@ def detect_lines_and_estimate_empty_ratio(img, roi):
         front_ceiling_line_points_list,
         container_box,
         pt0,
+        selected_points_list,
     )
     return empty_ratio_dict, intersection_img, report_img
 
@@ -311,6 +314,7 @@ def draw_report_img(
     front_ceiling_line_points_list=None,
     container_box=None,
     pt0=None,
+    selected_points_list=None,
 ):
     img_out = img // 8
     if line_points_list is not None:
@@ -343,6 +347,11 @@ def draw_report_img(
         img_out = cv2.line(
             img_out, pt1=tuple(pt0), pt2=tuple(pt0), color=255, thickness=10
         )
+    if selected_points_list is not None:
+        for pt in selected_points_list:
+            img_out = cv2.line(
+                img_out, pt1=tuple(pt), pt2=tuple(pt), color=255, thickness=10
+            )
 
     return img_out
 
@@ -354,20 +363,35 @@ def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
     top_depth_line_points_list = (
         q_depth_line_points_list[0] + q_depth_line_points_list[1]
     )
+
+    selected_points_list = []
     if top_depth_line_points_list:
-        top_y = max([pt1[1] for pt1, _ in top_depth_line_points_list])
+        # top_y = max([pt1[1] for pt1, _ in top_depth_line_points_list])
+        top_pt1 = max([pt1 for pt1, _ in top_depth_line_points_list], key=itemgetter(1))
+        selected_points_list.append(top_pt1)
+        top_y = top_pt1[1]
         top_ratio = (top_y - y_lower) / (pt0[1] - y_lower)
 
         bottom_left_line_points_list = q_depth_line_points_list[2]
         if bottom_left_line_points_list:
-            bottom_left_x = max([pt1[0] for pt1, _ in bottom_left_line_points_list])
+            # bottom_left_x = max([pt1[0] for pt1, _ in bottom_left_line_points_list])
+            bottom_left_pt1 = max(
+                [pt1 for pt1, _ in bottom_left_line_points_list], key=itemgetter(0)
+            )
+            selected_points_list.append(bottom_left_pt1)
+            bottom_left_x = bottom_left_pt1[0]
             bottom_left_ratio = max(0.0, (bottom_left_x - x_lower) / (pt0[0] - x_lower))
             left_empty_ratio = min(1.0, bottom_left_ratio / top_ratio)
             empty_ratio_dict["left_empty_ratio"] = left_empty_ratio
 
         bottom_right_line_points_list = q_depth_line_points_list[3]
         if bottom_right_line_points_list:
-            bottom_right_x = min([pt1[0] for pt1, _ in bottom_right_line_points_list])
+            # bottom_right_x = min([pt1[0] for pt1, _ in bottom_right_line_points_list])
+            bottom_right_pt1 = min(
+                [pt1 for pt1, _ in bottom_right_line_points_list], key=itemgetter(0)
+            )
+            selected_points_list.append(bottom_right_pt1)
+            bottom_right_x = bottom_right_pt1[0]
             bottom_right_ratio = max(
                 0.0, (x_upper - bottom_right_x) / (x_upper - pt0[0])
             )
@@ -378,7 +402,7 @@ def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
         empty_ratio_dict["left_empty_ratio"] + empty_ratio_dict["right_empty_ratio"]
     ) / 2
 
-    return empty_ratio_dict
+    return empty_ratio_dict, selected_points_list
 
 
 def flatten(ls):

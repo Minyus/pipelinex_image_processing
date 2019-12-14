@@ -185,7 +185,7 @@ def connect_line_segments(depth_line_points_list, pt0):
             polar_pt2 = polar_pt2_list[j]
             if (
                 (i != j)
-                and (0 < (polar_pt1[0] - polar_pt2[0]) < 100)
+                and (0 < (polar_pt1[0] - polar_pt2[0]) < 20)
                 and (abs(polar_pt2[1] - polar_pt1[1]) < (np.pi / 180))
             ):
                 points = (depth_line_points_list[j][0], depth_line_points_list[i][1])

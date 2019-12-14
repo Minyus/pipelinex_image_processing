@@ -27,7 +27,7 @@ def detect_lines_and_estimate_empty_ratio(img, roi):
         q_depth_line_points_list, front_ceiling_line_points_list, container_box, pt0
     )
     vis_depth_line_img = visualize_depth_line_img(
-        img, q_depth_line_points_list, container_box
+        img, q_depth_line_points_list, front_ceiling_line_points_list, container_box
     )
     return empty_ratio_dict, intersection_img, vis_depth_line_img
 
@@ -295,27 +295,36 @@ def extract_front_ceiling_line_segments(line_points_list, pt0):
     return front_ceiling_line_points_list
 
 
-def visualize_depth_line_img(img, q_depth_line_points_list=None, container_box=None):
-    depth_line_img = np.zeros_like(img)
+def visualize_depth_line_img(
+    img,
+    q_depth_line_points_list=None,
+    front_ceiling_line_points_list=None,
+    container_box=None,
+):
+    img_out = img // 4
     if q_depth_line_points_list is not None:
         depth_line_points_list = flatten(q_depth_line_points_list)
-        for depth_line_points in depth_line_points_list:
-            pt1, pt2 = depth_line_points
-            depth_line_img = cv2.line(
-                depth_line_img, pt1=tuple(pt1), pt2=tuple(pt2), color=255, thickness=1
+        for pt1, pt2 in depth_line_points_list:
+            img_out = cv2.line(
+                img_out, pt1=tuple(pt1), pt2=tuple(pt2), color=255, thickness=2
+            )
+    if front_ceiling_line_points_list is not None:
+        for pt1, pt2 in front_ceiling_line_points_list:
+            img_out = cv2.line(
+                img_out, pt1=tuple(pt1), pt2=tuple(pt2), color=191, thickness=2
             )
     if container_box is not None:
-        x_min, y_min, x_max, y_max = container_box
+        x_lower, y_lower, x_upper, y_upper = container_box
         edges = [
-            dict(pt1=(x_min, y_min), pt2=(x_min, y_max)),
-            dict(pt1=(x_min, y_max), pt2=(x_max, y_max)),
-            dict(pt1=(x_max, y_max), pt2=(x_max, y_min)),
-            dict(pt1=(x_max, y_min), pt2=(x_min, y_min)),
+            dict(pt1=(x_lower, y_lower), pt2=(x_lower, y_upper)),
+            dict(pt1=(x_lower, y_upper), pt2=(x_upper, y_upper)),
+            dict(pt1=(x_upper, y_upper), pt2=(x_upper, y_lower)),
+            dict(pt1=(x_upper, y_lower), pt2=(x_lower, y_lower)),
         ]
         for edge in edges:
-            depth_line_img = cv2.line(depth_line_img, color=127, thickness=1, **edge)
+            img_out = cv2.line(img_out, color=191, thickness=3, **edge)
 
-    return depth_line_img
+    return img_out
 
 
 def estimate_empty_area_ratio(

@@ -26,10 +26,14 @@ def detect_lines_and_estimate_empty_ratio(img, roi):
     empty_ratio_dict = estimate_empty_area_ratio(
         q_depth_line_points_list, front_ceiling_line_points_list, container_box, pt0
     )
-    vis_depth_line_img = visualize_depth_line_img(
-        img, q_depth_line_points_list, front_ceiling_line_points_list, container_box
+    report_img = draw_report_img(
+        img,
+        line_points_list,
+        q_depth_line_points_list,
+        front_ceiling_line_points_list,
+        container_box,
     )
-    return empty_ratio_dict, intersection_img, vis_depth_line_img
+    return empty_ratio_dict, intersection_img, report_img
 
 
 def detect_line_segments(img):
@@ -295,13 +299,19 @@ def extract_front_ceiling_line_segments(line_points_list, pt0):
     return front_ceiling_line_points_list
 
 
-def visualize_depth_line_img(
+def draw_report_img(
     img,
+    line_points_list=None,
     q_depth_line_points_list=None,
     front_ceiling_line_points_list=None,
     container_box=None,
 ):
     img_out = img // 4
+    if line_points_list is not None:
+        for pt1, pt2 in line_points_list:
+            img_out = cv2.line(
+                img_out, pt1=tuple(pt1), pt2=tuple(pt2), color=127, thickness=1
+            )
     if q_depth_line_points_list is not None:
         depth_line_points_list = flatten(q_depth_line_points_list)
         for pt1, pt2 in depth_line_points_list:

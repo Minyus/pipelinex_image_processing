@@ -266,7 +266,7 @@ def estimate_container_box(q_depth_line_points_list, roi, pt0):
     # if len(y_upper_list) >= 3:
     #     y_upper_list = [v for v in y_upper_list if v < np.mean(y_upper_list)]
 
-    roi_weight = 2
+    roi_weight = 1
 
     x_lower_list.extend([container_box[0]] * roi_weight)
     y_lower_list.extend([container_box[1]] * roi_weight)
@@ -278,10 +278,10 @@ def estimate_container_box(q_depth_line_points_list, roi, pt0):
     x_upper_list.sort(reverse=True)
     y_upper_list.sort(reverse=True)
 
-    x_lower = int(np.mean(np.array(x_lower_list[:2])))
-    y_lower = int(np.mean(np.array(y_lower_list[:2])))
-    x_upper = int(np.mean(np.array(x_upper_list[:2])))
-    y_upper = int(np.mean(np.array(y_upper_list[:2])))
+    x_lower = int(np.mean(np.array(x_lower_list[:3])))
+    y_lower = int(np.mean(np.array(y_lower_list[:3])))
+    x_upper = int(np.mean(np.array(x_upper_list[:3])))
+    y_upper = int(np.mean(np.array(y_upper_list[:3])))
 
     return x_lower, y_lower, x_upper, y_upper
 

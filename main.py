@@ -12,6 +12,7 @@ if "PYTHONPATH" not in os.environ:
     os.environ["PYTHONPATH"] = src_path
 
 import pipelinex
+
 print("pipelinex version: ", pipelinex.__version__)
 
 from pipelinex import MLflowFlexibleContext

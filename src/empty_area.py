@@ -20,8 +20,11 @@ def detect_lines_and_estimate_empty_ratio(img, roi):
     depth_line_points_list = connect_line_segments(depth_line_points_list, pt0)
     q_depth_line_points_list = extract_q_line_segments(depth_line_points_list, pt0)
     container_box = estimate_container_box(q_depth_line_points_list, roi, pt0)
+    front_ceiling_line_points_list = extract_front_ceiling_line_segments(
+        line_points_list, pt0
+    )
     empty_ratio_dict = estimate_empty_area_ratio(
-        q_depth_line_points_list, container_box, pt0
+        q_depth_line_points_list, front_ceiling_line_points_list, container_box, pt0
     )
     vis_depth_line_img = visualize_depth_line_img(
         img, q_depth_line_points_list, container_box
@@ -275,6 +278,23 @@ def estimate_container_box(q_depth_line_points_list, roi, pt0):
     return x_lower, y_lower, x_upper, y_upper
 
 
+def extract_front_ceiling_line_segments(line_points_list, pt0):
+    front_ceiling_line_points_list = []
+    for pt1, pt2 in line_points_list:
+        pt12 = pt2 - pt1
+        horizontal_flag = np.abs(pt12[1] / pt12[0]) < 0.05
+        above_vanishing_point_flag = (
+            -np.pi * 5 / 6 < cmath.phase(complex(*tuple(pt1 - pt0))) < -np.pi * 1 / 6
+            and -np.pi * 5 / 6
+            < cmath.phase(complex(*tuple(pt2 - pt0)))
+            < -np.pi * 1 / 6
+        )
+        if horizontal_flag and above_vanishing_point_flag:
+            front_ceiling_line_points_list.append((pt1, pt2))
+
+    return front_ceiling_line_points_list
+
+
 def visualize_depth_line_img(img, q_depth_line_points_list=None, container_box=None):
     depth_line_img = np.zeros_like(img)
     if q_depth_line_points_list is not None:
@@ -298,28 +318,34 @@ def visualize_depth_line_img(img, q_depth_line_points_list=None, container_box=N
     return depth_line_img
 
 
-def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
+def estimate_empty_area_ratio(
+    q_depth_line_points_list, front_ceiling_line_points_list, container_box, pt0
+):
     empty_ratio_dict = dict(empty_ratio=0, left_empty_ratio=0, right_empty_ratio=0)
-    x_min, y_min, x_max, y_max = container_box
+    x_lower, y_lower, x_upper, y_upper = container_box
 
     top_depth_line_points_list = (
-        q_depth_line_points_list[0] + q_depth_line_points_list[1]
+        q_depth_line_points_list[0]
+        + q_depth_line_points_list[1]
+        + front_ceiling_line_points_list
     )
     if top_depth_line_points_list:
         top_y = max([pt1[1] for pt1, _ in top_depth_line_points_list])
-        top_ratio = (top_y - y_min) / (pt0[1] - y_min)
+        top_ratio = (top_y - y_lower) / (pt0[1] - y_lower)
 
         bottom_left_line_points_list = q_depth_line_points_list[2]
         if bottom_left_line_points_list:
             bottom_left_x = max([pt1[0] for pt1, _ in bottom_left_line_points_list])
-            bottom_left_ratio = max(0.0, (bottom_left_x - x_min) / (pt0[0] - x_min))
+            bottom_left_ratio = max(0.0, (bottom_left_x - x_lower) / (pt0[0] - x_lower))
             left_empty_ratio = min(1.0, bottom_left_ratio / top_ratio)
             empty_ratio_dict["left_empty_ratio"] = left_empty_ratio
 
         bottom_right_line_points_list = q_depth_line_points_list[3]
         if bottom_right_line_points_list:
             bottom_right_x = min([pt1[0] for pt1, _ in bottom_right_line_points_list])
-            bottom_right_ratio = max(0.0, (x_max - bottom_right_x) / (x_max - pt0[0]))
+            bottom_right_ratio = max(
+                0.0, (x_upper - bottom_right_x) / (x_upper - pt0[0])
+            )
             right_empty_ratio = min(1.0, bottom_right_ratio / top_ratio)
             empty_ratio_dict["right_empty_ratio"] = right_empty_ratio
 

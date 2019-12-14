@@ -44,7 +44,7 @@ def detect_line_segments(img):
     h, w = img.shape
     s = np.array([w, h])
     center_point = s / 2
-    min_length = 0.01 * w
+    min_length = 0.03 * (h + w) / 2
     line_points_list = []
     tilted_line_points_list = []
     for line in lines:

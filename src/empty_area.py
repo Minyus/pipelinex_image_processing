@@ -34,6 +34,7 @@ def detect_lines_and_estimate_empty_ratio(img, roi):
         q_depth_line_points_list,
         front_ceiling_line_points_list,
         container_box,
+        pt0,
     )
     return empty_ratio_dict, intersection_img, report_img
 
@@ -309,6 +310,7 @@ def draw_report_img(
     q_depth_line_points_list=None,
     front_ceiling_line_points_list=None,
     container_box=None,
+    pt0=None,
 ):
     img_out = img // 8
     if line_points_list is not None:
@@ -337,6 +339,10 @@ def draw_report_img(
         ]
         for edge in edges:
             img_out = cv2.line(img_out, color=255, thickness=3, **edge)
+    if pt0 is not None:
+        img_out = cv2.line(
+            img_out, pt1=tuple(pt0), pt2=tuple(pt0), color=255, thickness=10
+        )
 
     return img_out
 

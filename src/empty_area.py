@@ -12,14 +12,14 @@ from scipy.sparse import coo_matrix
 log = logging.getLogger(__name__)
 
 
-def detect_lines_and_estimate_empty_ratio(img):
+def detect_lines_and_estimate_empty_ratio(img, roi):
 
     intersection_img, line_points_list = detect_line_segments(img)
     pt0 = get_vanishing_point(intersection_img)
     depth_line_points_list = extract_depth_line_segments(line_points_list, pt0)
     depth_line_points_list = connect_line_segments(depth_line_points_list, pt0)
     q_depth_line_points_list = extract_q_line_segments(depth_line_points_list, pt0)
-    container_box = estimate_container_box(q_depth_line_points_list)
+    container_box = estimate_container_box(q_depth_line_points_list, roi, pt0)
     empty_ratio_dict = estimate_empty_area_ratio(
         q_depth_line_points_list, container_box, pt0
     )
@@ -232,21 +232,47 @@ def extract_q_line_segments(ls_list, pt0, flat=False):
     return ls_list_out
 
 
-def estimate_container_box(ls_list):
-    ls_list = flatten(ls_list)
+def estimate_container_box(q_depth_line_points_list, roi, pt0):
+    container_box = tuple(roi)
+    ls_list = flatten(q_depth_line_points_list)
     if not ls_list:
-        return 0, 0, 0, 0
+        return container_box
+
     pt2_x_list = [pt2[0] for _, pt2 in ls_list]
     pt2_y_list = [pt2[1] for _, pt2 in ls_list]
 
-    pt2_x_list.sort()
-    pt2_y_list.sort()
+    x_lower_list = [v for v in pt2_x_list if v < pt0[0]]
+    y_lower_list = [v for v in pt2_y_list if v < pt0[1]]
+    x_upper_list = [v for v in pt2_x_list if v > pt0[0]]
+    y_upper_list = [v for v in pt2_y_list if v > pt0[1]]
 
-    x_min = int(np.mean(np.array(pt2_x_list[:2])))
-    y_min = int(np.mean(np.array(pt2_y_list[:2])))
-    x_max = int(np.mean(np.array(pt2_x_list[-2:])))
-    y_max = int(np.mean(np.array(pt2_y_list[-2:])))
-    return x_min, y_min, x_max, y_max
+    # if len(x_lower_list) >= 3:
+    #     x_lower_list = [v for v in x_lower_list if v < np.mean(x_lower_list)]
+    # if len(y_lower_list) >= 3:
+    #     y_lower_list = [v for v in y_lower_list if v < np.mean(y_lower_list)]
+    # if len(x_upper_list) >= 3:
+    #     x_upper_list = [v for v in x_upper_list if v < np.mean(x_upper_list)]
+    # if len(y_upper_list) >= 3:
+    #     y_upper_list = [v for v in y_upper_list if v < np.mean(y_upper_list)]
+
+    roi_weight = 2
+
+    x_lower_list.extend([container_box[0]] * roi_weight)
+    y_lower_list.extend([container_box[1]] * roi_weight)
+    x_upper_list.extend([container_box[2]] * roi_weight)
+    y_upper_list.extend([container_box[3]] * roi_weight)
+
+    x_lower_list.sort()
+    y_lower_list.sort()
+    x_upper_list.sort(reverse=True)
+    y_upper_list.sort(reverse=True)
+
+    x_lower = int(np.mean(np.array(x_lower_list[:2])))
+    y_lower = int(np.mean(np.array(y_lower_list[:2])))
+    x_upper = int(np.mean(np.array(x_upper_list[:2])))
+    y_upper = int(np.mean(np.array(y_upper_list[:2])))
+
+    return x_lower, y_lower, x_upper, y_upper
 
 
 def visualize_depth_line_img(img, q_depth_line_points_list=None, container_box=None):

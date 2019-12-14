@@ -307,6 +307,56 @@ def extract_front_ceiling_line_segments(line_points_list, pt0):
     return front_ceiling_line_points_list
 
 
+def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
+    empty_ratio_dict = dict(empty_ratio=0, left_empty_ratio=0, right_empty_ratio=0)
+    x_lower, y_lower, x_upper, y_upper = container_box
+
+    def get_x_distance(pt):
+        return np.abs(pt[0] - pt0[0])
+
+    selected_points_list = []
+    ratio_list = []
+    for i in range(4):
+        closest_pt = np.array([0, 0])
+        ratio = 1.0
+        line_points_list = q_depth_line_points_list[i]
+        if line_points_list:
+            pt1_list = [pt1 for pt1, _, in line_points_list]
+            closest_pt = min(pt1_list, key=get_x_distance)
+            box_val = x_lower if i in [0, 2] else x_upper
+            ratio = (closest_pt[0] - box_val) / (pt0[0] - box_val)
+        selected_points_list.append(closest_pt)
+        ratio_list.append(ratio)
+
+    top_left_ratio = ratio_list[0]
+    top_right_ratio = ratio_list[1]
+    bottom_left_ratio = ratio_list[2]
+    bottom_right_ratio = ratio_list[3]
+
+    top_left_point = selected_points_list[0]
+    top_right_point = selected_points_list[1]
+
+    if bottom_right_ratio == 1.0:
+        selected_points_list.pop(3)
+    if bottom_left_ratio == 1.0:
+        selected_points_list.pop(2)
+    if top_right_ratio == 1.0 or top_right_point[1] < top_left_point[1]:
+        selected_points_list.pop(1)
+        top_ratio = top_left_ratio
+    if top_left_ratio == 1.0 or top_left_point[1] < top_right_point[1]:
+        selected_points_list.pop(0)
+        top_ratio = top_right_ratio
+
+    if top_ratio != 1.0:
+        empty_ratio_dict["left_empty_ratio"] = min(1.0, bottom_left_ratio / top_ratio)
+        empty_ratio_dict["right_empty_ratio"] = min(1.0, bottom_right_ratio / top_ratio)
+        empty_ratio_dict["empty_ratio"] = (
+            empty_ratio_dict["left_empty_ratio"] + empty_ratio_dict["right_empty_ratio"]
+        ) / 2
+
+    return empty_ratio_dict, selected_points_list
+
+
 def draw_report_img(
     img,
     line_points_list=None,
@@ -354,55 +404,6 @@ def draw_report_img(
             )
 
     return img_out
-
-
-def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
-    empty_ratio_dict = dict(empty_ratio=0, left_empty_ratio=0, right_empty_ratio=0)
-    x_lower, y_lower, x_upper, y_upper = container_box
-
-    top_depth_line_points_list = (
-        q_depth_line_points_list[0] + q_depth_line_points_list[1]
-    )
-
-    selected_points_list = []
-    if top_depth_line_points_list:
-        # top_y = max([pt1[1] for pt1, _ in top_depth_line_points_list])
-        top_pt1 = max([pt1 for pt1, _ in top_depth_line_points_list], key=itemgetter(1))
-        selected_points_list.append(top_pt1)
-        top_y = top_pt1[1]
-        top_ratio = (top_y - y_lower) / (pt0[1] - y_lower)
-
-        bottom_left_line_points_list = q_depth_line_points_list[2]
-        if bottom_left_line_points_list:
-            # bottom_left_x = max([pt1[0] for pt1, _ in bottom_left_line_points_list])
-            bottom_left_pt1 = max(
-                [pt1 for pt1, _ in bottom_left_line_points_list], key=itemgetter(0)
-            )
-            selected_points_list.append(bottom_left_pt1)
-            bottom_left_x = bottom_left_pt1[0]
-            bottom_left_ratio = max(0.0, (bottom_left_x - x_lower) / (pt0[0] - x_lower))
-            left_empty_ratio = min(1.0, bottom_left_ratio / top_ratio)
-            empty_ratio_dict["left_empty_ratio"] = left_empty_ratio
-
-        bottom_right_line_points_list = q_depth_line_points_list[3]
-        if bottom_right_line_points_list:
-            # bottom_right_x = min([pt1[0] for pt1, _ in bottom_right_line_points_list])
-            bottom_right_pt1 = min(
-                [pt1 for pt1, _ in bottom_right_line_points_list], key=itemgetter(0)
-            )
-            selected_points_list.append(bottom_right_pt1)
-            bottom_right_x = bottom_right_pt1[0]
-            bottom_right_ratio = max(
-                0.0, (x_upper - bottom_right_x) / (x_upper - pt0[0])
-            )
-            right_empty_ratio = min(1.0, bottom_right_ratio / top_ratio)
-            empty_ratio_dict["right_empty_ratio"] = right_empty_ratio
-
-    empty_ratio_dict["empty_ratio"] = (
-        empty_ratio_dict["left_empty_ratio"] + empty_ratio_dict["right_empty_ratio"]
-    ) / 2
-
-    return empty_ratio_dict, selected_points_list
 
 
 def flatten(ls):

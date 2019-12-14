@@ -14,9 +14,11 @@ log = logging.getLogger(__name__)
 
 def detect_lines_and_estimate_empty_ratio(img, roi):
 
-    intersection_img, line_points_list = detect_line_segments(img)
+    intersection_img, line_points_list, tilted_line_points_list = detect_line_segments(
+        img
+    )
     pt0 = get_vanishing_point(intersection_img)
-    depth_line_points_list = extract_depth_line_segments(line_points_list, pt0)
+    depth_line_points_list = extract_depth_line_segments(tilted_line_points_list, pt0)
     depth_line_points_list = connect_line_segments(depth_line_points_list, pt0)
     q_depth_line_points_list = extract_q_line_segments(depth_line_points_list, pt0)
     container_box = estimate_container_box(q_depth_line_points_list, roi, pt0)
@@ -24,7 +26,7 @@ def detect_lines_and_estimate_empty_ratio(img, roi):
         line_points_list, pt0
     )
     empty_ratio_dict = estimate_empty_area_ratio(
-        q_depth_line_points_list, front_ceiling_line_points_list, container_box, pt0
+        q_depth_line_points_list, container_box, pt0
     )
     report_img = draw_report_img(
         img,
@@ -44,21 +46,23 @@ def detect_line_segments(img):
     center_point = s / 2
     min_length = 0.01 * w
     line_points_list = []
+    tilted_line_points_list = []
     for line in lines:
         pt1, pt2 = list_to_arrays(line, center_point)
+        line_points_list.append((pt1, pt2))
         pt12 = pt2 - pt1
         if (
             min_length < norm(pt12) < 0.9 * norm(pt12, ord=1)
             and norm(pt12, ord=1) < (h + w) / 2
         ):
-            line_points_list.append((pt1, pt2))
+            tilted_line_points_list.append((pt1, pt2))
 
     line_angle_list = [
-        cmath.phase(complex(*tuple(pt2 - pt1))) for pt1, pt2 in line_points_list
+        cmath.phase(complex(*tuple(pt2 - pt1))) for pt1, pt2 in tilted_line_points_list
     ]
 
     ac_list = []
-    for pt1, pt2 in line_points_list:
+    for pt1, pt2 in tilted_line_points_list:
         pt12 = pt2 - pt1
         a_ = np.array([pt12[1], -pt12[0]])
         c_ = pt12[1] * pt1[0] - pt12[0] * pt1[1]
@@ -81,8 +85,8 @@ def detect_line_segments(img):
                 intersection_point = np.matmul(np.linalg.inv(a_2darr), c_arr)
 
                 dist_pt1_from_center = min(
-                    norm(line_points_list[i][0] - center_point),
-                    norm(line_points_list[j][0] - center_point),
+                    norm(tilted_line_points_list[i][0] - center_point),
+                    norm(tilted_line_points_list[j][0] - center_point),
                 )
                 intersection_close_enough_to_center_flag = (
                     norm(intersection_point - center_point) < 0.8 * dist_pt1_from_center
@@ -112,7 +116,7 @@ def detect_line_segments(img):
     )
     intersection_img = intersection_coo.todense()
     intersection_img = cv2.GaussianBlur(intersection_img, ksize=(21, 21), sigmaX=10)
-    return intersection_img, line_points_list
+    return intersection_img, line_points_list, tilted_line_points_list
 
 
 def visualize_lines_img(lines_img):
@@ -306,7 +310,7 @@ def draw_report_img(
     front_ceiling_line_points_list=None,
     container_box=None,
 ):
-    img_out = img // 4
+    img_out = img // 8
     if line_points_list is not None:
         for pt1, pt2 in line_points_list:
             img_out = cv2.line(
@@ -316,12 +320,12 @@ def draw_report_img(
         depth_line_points_list = flatten(q_depth_line_points_list)
         for pt1, pt2 in depth_line_points_list:
             img_out = cv2.line(
-                img_out, pt1=tuple(pt1), pt2=tuple(pt2), color=255, thickness=2
+                img_out, pt1=tuple(pt1), pt2=tuple(pt2), color=191, thickness=2
             )
     if front_ceiling_line_points_list is not None:
         for pt1, pt2 in front_ceiling_line_points_list:
             img_out = cv2.line(
-                img_out, pt1=tuple(pt1), pt2=tuple(pt2), color=191, thickness=2
+                img_out, pt1=tuple(pt1), pt2=tuple(pt2), color=191, thickness=1
             )
     if container_box is not None:
         x_lower, y_lower, x_upper, y_upper = container_box
@@ -332,21 +336,17 @@ def draw_report_img(
             dict(pt1=(x_upper, y_lower), pt2=(x_lower, y_lower)),
         ]
         for edge in edges:
-            img_out = cv2.line(img_out, color=191, thickness=3, **edge)
+            img_out = cv2.line(img_out, color=255, thickness=3, **edge)
 
     return img_out
 
 
-def estimate_empty_area_ratio(
-    q_depth_line_points_list, front_ceiling_line_points_list, container_box, pt0
-):
+def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
     empty_ratio_dict = dict(empty_ratio=0, left_empty_ratio=0, right_empty_ratio=0)
     x_lower, y_lower, x_upper, y_upper = container_box
 
     top_depth_line_points_list = (
-        q_depth_line_points_list[0]
-        + q_depth_line_points_list[1]
-        + front_ceiling_line_points_list
+        q_depth_line_points_list[0] + q_depth_line_points_list[1]
     )
     if top_depth_line_points_list:
         top_y = max([pt1[1] for pt1, _ in top_depth_line_points_list])

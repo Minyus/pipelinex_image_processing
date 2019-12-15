@@ -44,6 +44,7 @@ data/load/img_04.jpg:
 
 data/load/img_05.jpg:
   type: pipelinex.ImagesLocalDataSet
+  reverse_color: True
   load_args:
     dict_structure: True
 

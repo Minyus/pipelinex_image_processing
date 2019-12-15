@@ -12,10 +12,10 @@ from numpy.linalg import norm
 log = logging.getLogger(__name__)
 
 
-def detect_lines_and_estimate_empty_ratio(img, roi):
+def detect_lines_and_estimate_empty_ratio(edge_img, roi, vis_img):
 
     intersection_img, line_points_list, tilted_line_points_list = detect_line_segments(
-        img
+        edge_img
     )
     pt0 = get_vanishing_point(intersection_img)
     depth_line_points_list = extract_depth_line_segments(tilted_line_points_list, pt0)
@@ -29,7 +29,7 @@ def detect_lines_and_estimate_empty_ratio(img, roi):
         q_depth_line_points_list, container_box, pt0
     )
     report_img = draw_report_img(
-        img,
+        vis_img,
         line_points_list,
         q_depth_line_points_list,
         front_ceiling_line_points_list,
@@ -365,22 +365,35 @@ def draw_report_img(
     pt0=None,
     selected_ratio_lines_list=None,
 ):
-    img_out = img // 8
+    color_flag = img.ndim == 3
+    img_out = img // (2 if color_flag else 8)
     if line_points_list is not None:
         for pt1, pt2 in line_points_list:
             img_out = cv2.line(
-                img_out, pt1=tuple(pt1), pt2=tuple(pt2), color=127, thickness=1
+                img_out,
+                pt1=tuple(pt1),
+                pt2=tuple(pt2),
+                color=(0, 255, 255) if color_flag else 127,
+                thickness=1,
             )
     if q_depth_line_points_list is not None:
         depth_line_points_list = flatten(q_depth_line_points_list)
         for pt1, pt2 in depth_line_points_list:
             img_out = cv2.line(
-                img_out, pt1=tuple(pt1), pt2=tuple(pt2), color=191, thickness=2
+                img_out,
+                pt1=tuple(pt1),
+                pt2=tuple(pt2),
+                color=(255, 0, 255) if color_flag else 191,
+                thickness=2,
             )
     if front_ceiling_line_points_list is not None:
         for pt1, pt2 in front_ceiling_line_points_list:
             img_out = cv2.line(
-                img_out, pt1=tuple(pt1), pt2=tuple(pt2), color=191, thickness=1
+                img_out,
+                pt1=tuple(pt1),
+                pt2=tuple(pt2),
+                color=(255, 255, 0) if color_flag else 191,
+                thickness=1,
             )
     if container_box is not None:
         x_lower, y_lower, x_upper, y_upper = container_box
@@ -391,15 +404,25 @@ def draw_report_img(
             dict(pt1=(x_upper, y_lower), pt2=(x_lower, y_lower)),
         ]
         for edge in edges:
-            img_out = cv2.line(img_out, color=255, thickness=3, **edge)
+            img_out = cv2.line(
+                img_out, color=(255, 0, 0) if color_flag else 255, thickness=3, **edge
+            )
     if pt0 is not None:
         img_out = cv2.line(
-            img_out, pt1=tuple(pt0), pt2=tuple(pt0), color=255, thickness=10
+            img_out,
+            pt1=tuple(pt0),
+            pt2=tuple(pt0),
+            color=(0, 255, 0) if color_flag else 255,
+            thickness=10,
         )
     if selected_ratio_lines_list is not None:
         for pt1, b_pt, _ in selected_ratio_lines_list:
             img_out = cv2.line(
-                img_out, pt1=tuple(pt1), pt2=tuple(b_pt), color=255, thickness=3
+                img_out,
+                pt1=tuple(pt1),
+                pt2=tuple(b_pt),
+                color=(0, 0, 255) if color_flag else 255,
+                thickness=3,
             )
 
     return img_out

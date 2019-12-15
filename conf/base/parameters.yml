@@ -65,7 +65,7 @@ PIPELINES:
           - {=: pipelinex.CvCanny, threshold1: 10, threshold2: 10, apertureSize: 5, L2gradient: True}
         outputs: img_03
 
-      - inputs: [img_03, roi]
+      - inputs: [img_03, roi, img_01]
         decorator: {=: pipelinex.dict_io}
         func: {=: empty_area.detect_lines_and_estimate_empty_ratio}
         outputs: [empty_ratios_dict, img_04_raw, img_05]

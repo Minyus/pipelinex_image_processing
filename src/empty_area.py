@@ -1,14 +1,13 @@
 import math
 from operator import itemgetter
-
 import cv2
 from pylsd.lsd import lsd
-import numpy as np
-from numpy.linalg import norm
-import cmath
-import itertools
 import logging
 from scipy.sparse import coo_matrix
+import cmath
+import itertools
+import numpy as np
+from numpy.linalg import norm
 
 log = logging.getLogger(__name__)
 
@@ -60,9 +59,7 @@ def detect_line_segments(img):
         ):
             tilted_line_points_list.append((pt1, pt2))
 
-    line_angle_list = [
-        cmath.phase(complex(*tuple(pt2 - pt1))) for pt1, pt2 in tilted_line_points_list
-    ]
+    line_angle_list = [phase(pt2 - pt1) for pt1, pt2 in tilted_line_points_list]
 
     ac_list = []
     for pt1, pt2 in tilted_line_points_list:
@@ -132,25 +129,6 @@ def visualize_lines_img(lines_img):
     return lines_img
 
 
-def list_to_arrays(line, c):
-    x1, y1, x2, y2 = map(int, line[:4])
-
-    pt1 = np.array([x1, y1])
-    pt2 = np.array([x2, y2])
-    if norm(pt1 - c) > norm(pt2 - c):
-        pt1, pt2 = pt2, pt1
-    return pt1, pt2
-
-
-def extend(pt1, pt2, scale=1):
-    pt2 = scale * (pt2 - pt1) + pt1
-    return pt1, pt2
-
-
-def argsmax(a):
-    return np.unravel_index(np.argmax(a, axis=None), a.shape)
-
-
 def get_vanishing_point(a):
     return argsmax(a)[::-1]
 
@@ -158,12 +136,11 @@ def get_vanishing_point(a):
 def extract_depth_line_segments(line_points_list, pt0):
     depth_line_points_list = []
     for line_points in line_points_list:
-        pt1, pt2 = line_points
-        v12 = pt2 - pt1
-        nv12 = v12 / norm(v12)
-        v01 = pt1 - pt0
-        dist_vanishing_point = np.abs(nv12[0] * v01[1] - nv12[1] * v01[0])
-        depth_flag = dist_vanishing_point < 20
+        depth_flag = (
+            get_point_to_line_distance(line_points, pt0)
+            < 20
+            # and angle_diff(line_points, pt0) < np.pi * 5 / 180
+        )
         if depth_flag:
             depth_line_points_list.append(line_points)
     return depth_line_points_list
@@ -173,12 +150,8 @@ def connect_line_segments(depth_line_points_list, pt0):
 
     n_lines = len(depth_line_points_list)
 
-    polar_pt1_list = [
-        cmath.polar(complex(*tuple(pt1 - pt0))) for pt1, _ in depth_line_points_list
-    ]
-    polar_pt2_list = [
-        cmath.polar(complex(*tuple(pt2 - pt0))) for _, pt2 in depth_line_points_list
-    ]
+    polar_pt1_list = [polar(pt1 - pt0) for pt1, _ in depth_line_points_list]
+    polar_pt2_list = [polar(pt2 - pt0) for _, pt2 in depth_line_points_list]
 
     connected_line_points_list = []
     connected_index_list = []
@@ -203,7 +176,6 @@ def connect_line_segments(depth_line_points_list, pt0):
 
     combined_line_points_list = reduced_line_points_list + connected_line_points_list
     return combined_line_points_list
-    # return depth_line_points_list
 
 
 def get_line_length(t):
@@ -295,10 +267,8 @@ def extract_front_ceiling_line_segments(line_points_list, pt0):
         pt12 = pt2 - pt1
         horizontal_flag = np.abs(pt12[1] / pt12[0]) < 0.05
         above_vanishing_point_flag = (
-            -np.pi * 5 / 6 < cmath.phase(complex(*tuple(pt1 - pt0))) < -np.pi * 1 / 6
-            and -np.pi * 5 / 6
-            < cmath.phase(complex(*tuple(pt2 - pt0)))
-            < -np.pi * 1 / 6
+            -np.pi * 5 / 6 < phase(pt1 - pt0) < -np.pi * 1 / 6
+            and -np.pi * 5 / 6 < phase(pt2 - pt0) < -np.pi * 1 / 6
         )
         if horizontal_flag and above_vanishing_point_flag:
             front_ceiling_line_points_list.append((pt1, pt2))
@@ -317,7 +287,7 @@ def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
     }
 
     def phase_vp(pt):
-        return cmath.phase(complex(*tuple(pt - pt0)))
+        return phase(pt - pt0)
 
     def sin_vp(pt):
         return np.sin(phase_vp(pt))
@@ -438,3 +408,43 @@ def draw_report_img(
 
 def flatten(ls):
     return list(itertools.chain.from_iterable(ls))
+
+
+def phase(pt):
+    return cmath.phase(complex(*tuple(pt)))
+
+
+def polar(pt):
+    return cmath.polar(complex(*tuple(pt)))
+
+
+def angle_diff(points, pt0):
+    pt1, pt2 = points
+    return np.abs(phase(pt1 - pt0) - phase(pt2 - pt0))
+
+
+def get_point_to_line_distance(line_points, pt0):
+    pt1, pt2 = line_points
+    v12 = pt2 - pt1
+    nv12 = v12 / norm(v12)
+    v01 = pt1 - pt0
+    return np.abs(nv12[0] * v01[1] - nv12[1] * v01[0])
+
+
+def extend(pt1, pt2, scale=1):
+    pt2 = scale * (pt2 - pt1) + pt1
+    return pt1, pt2
+
+
+def argsmax(a):
+    return np.unravel_index(np.argmax(a, axis=None), a.shape)
+
+
+def list_to_arrays(line, c):
+    x1, y1, x2, y2 = map(int, line[:4])
+
+    pt1 = np.array([x1, y1])
+    pt2 = np.array([x2, y2])
+    if norm(pt1 - c) > norm(pt2 - c):
+        pt1, pt2 = pt2, pt1
+    return pt1, pt2

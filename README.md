@@ -2,13 +2,15 @@
 
 Example project to use [PipelineX](https://github.com/Minyus/pipelinex) for image processing using opencv, scikit-image, and pylsd. 
 
-## 0. Install the latest PipelineX
+## How to use
+
+### 0. Install the latest PipelineX
 
 ```bash
 $ pip3 install git+https://github.com/Minyus/pipelinex.git
 ```
 
-## 1. Install the other dependencies
+### 1. Install the other dependencies
 
 ```
 opencv-python==3.4.5.20
@@ -22,9 +24,12 @@ pandas==0.25.1
 PyYAML==5.2
 ```
 
-Note: These versions are recommended, but recent older versions will likely work.
+These versions are recommended, but other recent versions will likely work.
 
-## 2. Clone this repository
+### 2. Clone this repository
 
-## 3. Run `main.py`
+### 3. Run `main.py`
 
+## Recommended environment
+- Python 3.6.8 (Python 3.6.x will likely work.)
+- Ubuntu 18.04.3 LTS (Recent Linux versions will likely work.)

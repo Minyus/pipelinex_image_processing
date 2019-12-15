@@ -38,6 +38,9 @@ These versions are recommended, but other recent versions will likely work.
 
 ### 3. Place input images in `data/input/TRIMG` folder
 
+An example image is at:
+https://cdn.foodlogistics.com/files/base/acbm/fl/image/2018/09/960w/GettyImages_485190815.5b9bfb5550ded.jpg
+
 ### 4. Run `main.py`
 
 ## Recommended environment

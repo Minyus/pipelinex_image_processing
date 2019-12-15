@@ -231,15 +231,6 @@ def estimate_container_box(q_depth_line_points_list, roi, pt0):
     x_upper_list = [v for v in pt2_x_list if v > pt0[0]]
     y_upper_list = [v for v in pt2_y_list if v > pt0[1]]
 
-    # if len(x_lower_list) >= 3:
-    #     x_lower_list = [v for v in x_lower_list if v < np.mean(x_lower_list)]
-    # if len(y_lower_list) >= 3:
-    #     y_lower_list = [v for v in y_lower_list if v < np.mean(y_lower_list)]
-    # if len(x_upper_list) >= 3:
-    #     x_upper_list = [v for v in x_upper_list if v < np.mean(x_upper_list)]
-    # if len(y_upper_list) >= 3:
-    #     y_upper_list = [v for v in y_upper_list if v < np.mean(y_upper_list)]
-
     roi_weight = 1
 
     x_lower_list.extend([container_box[0]] * roi_weight)
@@ -302,7 +293,10 @@ def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
         return pt, b_pt, (pt[1] - box) / (pt0[1] - box)
 
     def get_lines_with_max_ratio(ratio_line_list):
-        return max(ratio_line_list, key=itemgetter(2))
+        if ratio_line_list:
+            return max(ratio_line_list, key=itemgetter(2))
+        else:
+            return None
 
     def get_ratio_line(pt, box):
         y_flag = sin_vp(pt) > sin_vp(np.array(box))
@@ -319,39 +313,32 @@ def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
         ]
         q_ratio_line_list.append(ratio_line_list)
 
-    q_selected_ratio_lines_list = []
-
-    for i in range(4):
-        selected_ratio_line = (np.array([0, 0]), np.array([0, 0]), -1)
-        ratio_line_list = q_ratio_line_list[i]
-        if ratio_line_list:
-            selected_ratio_line = get_lines_with_max_ratio(ratio_line_list)
-        q_selected_ratio_lines_list.append(selected_ratio_line)
-
-    top_left_ratio_line = q_selected_ratio_lines_list[0]
-    top_right_ratio_line = q_selected_ratio_lines_list[1]
-    bottom_left_ratio_line = q_selected_ratio_lines_list[2]
-    bottom_right_ratio_line = q_selected_ratio_lines_list[3]
-
     top_ratio_line = get_lines_with_max_ratio(
-        [top_left_ratio_line, top_right_ratio_line]
+        q_ratio_line_list[0] + q_ratio_line_list[1]
     )
+    bottom_left_ratio_line = get_lines_with_max_ratio(q_ratio_line_list[2])
+    bottom_right_ratio_line = get_lines_with_max_ratio(q_ratio_line_list[3])
 
-    empty_ratio_dict["left_empty_ratio"] = min(
-        1.0, bottom_left_ratio_line[2] / top_ratio_line[2]
-    )
-    empty_ratio_dict["right_empty_ratio"] = min(
-        1.0, bottom_right_ratio_line[2] / top_ratio_line[2]
-    )
-    empty_ratio_dict["empty_ratio"] = (
-        empty_ratio_dict["left_empty_ratio"] + empty_ratio_dict["right_empty_ratio"]
-    ) / 2
+    selected_ratio_lines_list = []
+    if top_ratio_line is None:
+        left_ratio = 1
+        right_ratio = 1
+    else:
+        selected_ratio_lines_list.append(top_ratio_line)
+        if bottom_left_ratio_line is None:
+            left_ratio = 0
+        else:
+            left_ratio = clip(bottom_left_ratio_line[2] / top_ratio_line[2], 0, 1)
+            selected_ratio_lines_list.append(bottom_left_ratio_line)
+        if bottom_right_ratio_line is None:
+            right_ratio = 0
+        else:
+            right_ratio = clip(bottom_right_ratio_line[2] / top_ratio_line[2], 0, 1)
+            selected_ratio_lines_list.append(bottom_right_ratio_line)
 
-    selected_ratio_lines_list = [
-        top_ratio_line,
-        bottom_left_ratio_line,
-        bottom_right_ratio_line,
-    ]
+    empty_ratio_dict["empty_ratio"] = (left_ratio + right_ratio) / 2
+    empty_ratio_dict["left_empty_ratio"] = left_ratio
+    empty_ratio_dict["right_empty_ratio"] = right_ratio
 
     return empty_ratio_dict, selected_ratio_lines_list
 
@@ -483,3 +470,7 @@ def list_to_arrays(line, c):
     if norm(pt1 - c) > norm(pt2 - c):
         pt1, pt2 = pt2, pt1
     return pt1, pt2
+
+
+def clip(a, *args, **kwargs):
+    return float(np.clip(a, *args, **kwargs))

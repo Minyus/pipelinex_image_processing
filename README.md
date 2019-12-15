@@ -1,6 +1,6 @@
 # Pipelinex Image Processing
 
-Example project to use [PipelineX](https://github.com/Minyus/pipelinex) for image processing using opencv, scikit-image, and pylsd. 
+A project to use [PipelineX](https://github.com/Minyus/pipelinex) for image processing. 
 
 ## How to use
 
@@ -34,7 +34,7 @@ PyYAML==5.2
 
 These versions are recommended, but other recent versions will likely work.
 
-### 2. Clone this repository
+### 2. Clone `https://github.com/Minyus/pipelinex_image_processing.git`
 
 ### 3. Place input images in `data/input/TRIMG` folder
 
@@ -46,3 +46,11 @@ https://cdn.foodlogistics.com/files/base/acbm/fl/image/2018/09/960w/GettyImages_
 ## Recommended environment
 - Python 3.6.8 (Python 3.6.x will likely work.)
 - Ubuntu 18.04.3 LTS (Recent Linux versions will likely work.)
+
+## Author
+Yusuke Minami
+
+- [GitHub](https://github.com/Minyus)
+- [Linkedin](https://www.linkedin.com/in/yusukeminami/)
+- [Twitter](https://twitter.com/Minyus86)
+

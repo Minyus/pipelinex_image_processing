@@ -7,6 +7,13 @@ Example project to use [PipelineX](https://github.com/Minyus/pipelinex) for imag
 ### 1. Install Python packages
 
 #### Install PipelineX
+
+Option 1: PyPI
+```bash
+$ pip3 install pipelinex==0.1.5
+```
+
+Option 2: GitHub repository
 ```bash
 $ pip3 install git+https://github.com/Minyus/pipelinex.git
 ```
@@ -18,6 +25,7 @@ scikit-image==0.16.2
 ocrd-fork-pylsd==0.0.3
 Pillow==4.3.0
 numpy==1.16.4
+scipy==1.2.1
 kedro==0.15.5
 mlflow==1.4.0
 pandas==0.25.1

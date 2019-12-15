@@ -322,7 +322,7 @@ def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
     q_selected_ratio_lines_list = []
 
     for i in range(4):
-        selected_ratio_line = (np.array([0, 0]), np.array([0, 0]), 1.0)
+        selected_ratio_line = (np.array([0, 0]), np.array([0, 0]), -1)
         ratio_line_list = q_ratio_line_list[i]
         if ratio_line_list:
             selected_ratio_line = get_lines_with_max_ratio(ratio_line_list)

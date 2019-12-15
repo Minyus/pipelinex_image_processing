@@ -1,6 +1,4 @@
 import math
-from operator import itemgetter
-
 import cv2
 from pylsd.lsd import lsd
 import numpy as np
@@ -8,7 +6,6 @@ from numpy.linalg import norm
 import cmath
 import itertools
 import logging
-
 from scipy.sparse import coo_matrix
 
 log = logging.getLogger(__name__)
@@ -399,8 +396,11 @@ def draw_report_img(
         )
     if selected_points_list is not None:
         for pt in selected_points_list:
+            h_pt = pt.copy()
+            if container_box is not None and pt0 is not None:
+                h_pt[0] = container_box[0 if pt[0] < pt0[0] else 2]
             img_out = cv2.line(
-                img_out, pt1=tuple(pt), pt2=tuple(pt), color=255, thickness=10
+                img_out, pt1=tuple(pt), pt2=tuple(h_pt), color=255, thickness=3
             )
 
     return img_out

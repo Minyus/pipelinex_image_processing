@@ -137,9 +137,8 @@ def extract_depth_line_segments(line_points_list, pt0):
     depth_line_points_list = []
     for line_points in line_points_list:
         depth_flag = (
-            get_point_to_line_distance(line_points, pt0)
-            < 20
-            # and angle_diff(line_points, pt0) < np.pi * 5 / 180
+            get_point_to_line_distance(line_points, pt0) < 20
+            and angle_diff(line_points, pt0) < np.pi * 10 / 180
         )
         if depth_flag:
             depth_line_points_list.append(line_points)

@@ -1,4 +1,6 @@
 import math
+from operator import itemgetter
+
 import cv2
 from pylsd.lsd import lsd
 import numpy as np
@@ -24,7 +26,7 @@ def detect_lines_and_estimate_empty_ratio(img, roi):
     front_ceiling_line_points_list = extract_front_ceiling_line_segments(
         line_points_list, pt0
     )
-    empty_ratio_dict, selected_points_list = estimate_empty_area_ratio(
+    empty_ratio_dict, selected_ratio_lines_list = estimate_empty_area_ratio(
         q_depth_line_points_list, container_box, pt0
     )
     report_img = draw_report_img(
@@ -34,7 +36,7 @@ def detect_lines_and_estimate_empty_ratio(img, roi):
         front_ceiling_line_points_list,
         container_box,
         pt0,
-        selected_points_list,
+        selected_ratio_lines_list,
     )
     return empty_ratio_dict, intersection_img, report_img
 
@@ -307,51 +309,82 @@ def extract_front_ceiling_line_segments(line_points_list, pt0):
 def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
     empty_ratio_dict = dict(empty_ratio=0, left_empty_ratio=0, right_empty_ratio=0)
     x_lower, y_lower, x_upper, y_upper = container_box
+    box_dict = {
+        0: [x_lower, y_lower],
+        1: [x_upper, y_lower],
+        2: [x_lower, y_upper],
+        3: [x_upper, y_upper],
+    }
 
-    def get_x_distance(pt):
-        return np.abs(pt[0] - pt0[0])
+    def phase_vp(pt):
+        return cmath.phase(complex(*tuple(pt - pt0)))
 
-    selected_points_list = []
-    ratio_list = []
+    def sin_vp(pt):
+        return np.sin(phase_vp(pt))
+
+    def ratio_line_x(pt, box):
+        b_pt = pt.copy()
+        b_pt[0] = box
+        return pt, b_pt, (pt[0] - box) / (pt0[0] - box)
+
+    def ratio_line_y(pt, box):
+        b_pt = pt.copy()
+        b_pt[1] = box
+        return pt, b_pt, (pt[1] - box) / (pt0[1] - box)
+
+    def get_lines_with_max_ratio(ratio_line_list):
+        return max(ratio_line_list, key=itemgetter(2))
+
+    def get_ratio_line(pt, box):
+        y_flag = sin_vp(pt) > sin_vp(np.array(box))
+        if y_flag:
+            return ratio_line_y(pt, box[1])
+        else:
+            return ratio_line_x(pt, box[0])
+
+    q_ratio_line_list = []
     for i in range(4):
-        closest_pt = np.array([0, 0])
-        ratio = 1.0
         line_points_list = q_depth_line_points_list[i]
-        if line_points_list:
-            pt1_list = [pt1 for pt1, _, in line_points_list]
-            closest_pt = min(pt1_list, key=get_x_distance)
-            box_val = x_lower if i in [0, 2] else x_upper
-            ratio = (closest_pt[0] - box_val) / (pt0[0] - box_val)
-        selected_points_list.append(closest_pt)
-        ratio_list.append(ratio)
+        ratio_line_list = [
+            get_ratio_line(pt1, box=box_dict[i]) for pt1, _, in line_points_list
+        ]
+        q_ratio_line_list.append(ratio_line_list)
 
-    top_left_ratio = ratio_list[0]
-    top_right_ratio = ratio_list[1]
-    bottom_left_ratio = ratio_list[2]
-    bottom_right_ratio = ratio_list[3]
+    q_selected_ratio_lines_list = []
 
-    top_left_point = selected_points_list[0]
-    top_right_point = selected_points_list[1]
+    for i in range(4):
+        selected_ratio_line = (np.array([0, 0]), np.array([0, 0]), 1.0)
+        ratio_line_list = q_ratio_line_list[i]
+        if ratio_line_list:
+            selected_ratio_line = get_lines_with_max_ratio(ratio_line_list)
+        q_selected_ratio_lines_list.append(selected_ratio_line)
 
-    if bottom_right_ratio == 1.0:
-        selected_points_list.pop(3)
-    if bottom_left_ratio == 1.0:
-        selected_points_list.pop(2)
-    if top_right_ratio == 1.0 or top_right_point[1] < top_left_point[1]:
-        selected_points_list.pop(1)
-        top_ratio = top_left_ratio
-    if top_left_ratio == 1.0 or top_left_point[1] < top_right_point[1]:
-        selected_points_list.pop(0)
-        top_ratio = top_right_ratio
+    top_left_ratio_line = q_selected_ratio_lines_list[0]
+    top_right_ratio_line = q_selected_ratio_lines_list[1]
+    bottom_left_ratio_line = q_selected_ratio_lines_list[2]
+    bottom_right_ratio_line = q_selected_ratio_lines_list[3]
 
-    if top_ratio != 1.0:
-        empty_ratio_dict["left_empty_ratio"] = min(1.0, bottom_left_ratio / top_ratio)
-        empty_ratio_dict["right_empty_ratio"] = min(1.0, bottom_right_ratio / top_ratio)
-        empty_ratio_dict["empty_ratio"] = (
-            empty_ratio_dict["left_empty_ratio"] + empty_ratio_dict["right_empty_ratio"]
-        ) / 2
+    top_ratio_line = get_lines_with_max_ratio(
+        [top_left_ratio_line, top_right_ratio_line]
+    )
 
-    return empty_ratio_dict, selected_points_list
+    empty_ratio_dict["left_empty_ratio"] = min(
+        1.0, bottom_left_ratio_line[2] / top_ratio_line[2]
+    )
+    empty_ratio_dict["right_empty_ratio"] = min(
+        1.0, bottom_right_ratio_line[2] / top_ratio_line[2]
+    )
+    empty_ratio_dict["empty_ratio"] = (
+        empty_ratio_dict["left_empty_ratio"] + empty_ratio_dict["right_empty_ratio"]
+    ) / 2
+
+    selected_ratio_lines_list = [
+        top_ratio_line,
+        bottom_left_ratio_line,
+        bottom_right_ratio_line,
+    ]
+
+    return empty_ratio_dict, selected_ratio_lines_list
 
 
 def draw_report_img(
@@ -361,7 +394,7 @@ def draw_report_img(
     front_ceiling_line_points_list=None,
     container_box=None,
     pt0=None,
-    selected_points_list=None,
+    selected_ratio_lines_list=None,
 ):
     img_out = img // 8
     if line_points_list is not None:
@@ -394,13 +427,10 @@ def draw_report_img(
         img_out = cv2.line(
             img_out, pt1=tuple(pt0), pt2=tuple(pt0), color=255, thickness=10
         )
-    if selected_points_list is not None:
-        for pt in selected_points_list:
-            h_pt = pt.copy()
-            if container_box is not None and pt0 is not None:
-                h_pt[0] = container_box[0 if pt[0] < pt0[0] else 2]
+    if selected_ratio_lines_list is not None:
+        for pt1, b_pt, _ in selected_ratio_lines_list:
             img_out = cv2.line(
-                img_out, pt1=tuple(pt), pt2=tuple(h_pt), color=255, thickness=3
+                img_out, pt1=tuple(pt1), pt2=tuple(b_pt), color=255, thickness=3
             )
 
     return img_out

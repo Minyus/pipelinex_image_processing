@@ -4,14 +4,14 @@ Example project to use [PipelineX](https://github.com/Minyus/pipelinex) for imag
 
 ## How to use
 
-### 0. Install the latest PipelineX
+### 1. Install Python packages
 
+#### Install PipelineX
 ```bash
 $ pip3 install git+https://github.com/Minyus/pipelinex.git
 ```
 
-### 1. Install the other dependencies
-
+#### Install the other dependencies
 ```
 opencv-python==3.4.5.20
 scikit-image==0.16.2
@@ -28,7 +28,9 @@ These versions are recommended, but other recent versions will likely work.
 
 ### 2. Clone this repository
 
-### 3. Run `main.py`
+### 3. Place input images in `data/input/TRIMG` folder
+
+### 4. Run `main.py`
 
 ## Recommended environment
 - Python 3.6.8 (Python 3.6.x will likely work.)

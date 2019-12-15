@@ -397,24 +397,37 @@ def draw_report_img(
             )
     if container_box is not None:
         x_lower, y_lower, x_upper, y_upper = container_box
-        edges = [
+        box_edges = [
             dict(pt1=(x_lower, y_lower), pt2=(x_lower, y_upper)),
             dict(pt1=(x_lower, y_upper), pt2=(x_upper, y_upper)),
             dict(pt1=(x_upper, y_upper), pt2=(x_upper, y_lower)),
             dict(pt1=(x_upper, y_lower), pt2=(x_lower, y_lower)),
         ]
-        for edge in edges:
+        for edge in box_edges:
             img_out = cv2.line(
                 img_out, color=(255, 0, 0) if color_flag else 255, thickness=3, **edge
             )
     if pt0 is not None:
-        img_out = cv2.line(
-            img_out,
-            pt1=tuple(pt0),
-            pt2=tuple(pt0),
-            color=(0, 255, 0) if color_flag else 255,
-            thickness=10,
-        )
+        if container_box is not None:
+            cross_edges = [
+                dict(pt1=(pt0[0], y_lower), pt2=(pt0[0], y_upper)),
+                dict(pt1=(x_lower, pt0[1]), pt2=(x_upper, pt0[1])),
+            ]
+            for edge in cross_edges:
+                img_out = cv2.line(
+                    img_out,
+                    color=(0, 255, 0) if color_flag else 255,
+                    thickness=2,
+                    **edge
+                )
+        else:
+            img_out = cv2.line(
+                img_out,
+                pt1=tuple(pt0),
+                pt2=tuple(pt0),
+                color=(0, 255, 0) if color_flag else 255,
+                thickness=10,
+            )
     if selected_ratio_lines_list is not None:
         for pt1, b_pt, _ in selected_ratio_lines_list:
             img_out = cv2.line(

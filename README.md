@@ -2,7 +2,7 @@
 
 A project to use [PipelineX](https://github.com/Minyus/pipelinex) for image processing. 
 
-## How to use
+## How to run the code
 
 ### 1. Install Python packages
 

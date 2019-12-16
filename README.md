@@ -2,6 +2,20 @@
 
 A project to use [PipelineX](https://github.com/Minyus/pipelinex) for image processing. 
 
+## Directories
+
+- `conf`
+  - YAML config files for PipelineX project
+- `data`
+  - empty folders (output files will be saved here)
+- `logs`
+  - empty folders (log files will be saved here)
+- `src`
+  - `empty_area.py`
+    - The algorithm to estimate emtpy area ratio 
+  - `roi.py`
+    - Supplementary algorithm to compute ROI (Region of Interest) from segmentation image
+
 ## How to run the code
 
 ### 1. Install Python packages

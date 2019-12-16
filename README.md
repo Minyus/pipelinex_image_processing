@@ -12,7 +12,7 @@ A project to use [PipelineX](https://github.com/Minyus/pipelinex) for image proc
   - empty folders (log files will be saved here)
 - `src`
   - `empty_area.py`
-    - The algorithm to estimate emtpy area ratio 
+    - The algorithm to estimate empty area ratio 
   - `roi.py`
     - Supplementary algorithm to compute ROI (Region of Interest) from segmentation image
 

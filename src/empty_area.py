@@ -25,9 +25,9 @@ def detect_lines_and_estimate_empty_ratio(edge_img, roi, seg_edge_img, vis_img):
     front_ceiling_line_points_list = extract_front_ceiling_line_segments(
         line_points_list, pt0
     )
-    cargo_outline = estimate_cargo_outline(container_box, pt0, seg_edge_img)
+    cargo_outline_points = estimate_cargo_outline(container_box, pt0, seg_edge_img)
     empty_ratio_dict, selected_ratio_lines_list = estimate_empty_area_ratio(
-        q_depth_line_points_list, container_box, pt0, cargo_outline,
+        q_depth_line_points_list, container_box, pt0, cargo_outline_points,
     )
     report_img = draw_report_img(
         vis_img,
@@ -36,6 +36,7 @@ def detect_lines_and_estimate_empty_ratio(edge_img, roi, seg_edge_img, vis_img):
         front_ceiling_line_points_list,
         container_box,
         pt0,
+        cargo_outline_points,
         selected_ratio_lines_list,
     )
     return empty_ratio_dict, intersection_img, report_img
@@ -268,9 +269,26 @@ def extract_front_ceiling_line_segments(line_points_list, pt0):
 
 
 def estimate_cargo_outline(container_box, pt0, seg_edge_img):
-    # TODO
 
-    return None  # cargo_outline
+    x_lower, y_lower, x_upper, y_upper = container_box
+
+    points = np.stack(
+        [np.array([x_lower, y_upper]), np.array([x_upper, y_upper]), pt0,]
+    )
+
+    mask_img = np.zeros_like(seg_edge_img)
+    mask_img = cv2.fillConvexPoly(mask_img, points=points, color=1)
+    masked_seg_edge_img = (seg_edge_img > 1).astype(np.uint8) * mask_img
+
+    outline_y = last_argmax_axis1(masked_seg_edge_img)
+    outline_points = zip(range(len(outline_y)), outline_y)
+    outline_points = [
+        pt
+        for pt in outline_points
+        if (x_lower < pt[0] < x_upper) and (pt0[1] < pt[1] < y_upper)
+    ]
+
+    return outline_points
 
 
 def estimate_empty_area_ratio(
@@ -359,6 +377,7 @@ def draw_report_img(
     front_ceiling_line_points_list=None,
     container_box=None,
     pt0=None,
+    cargo_outline_points=None,
     selected_ratio_lines_list=None,
 ):
     color_flag = img.ndim == 3
@@ -424,6 +443,16 @@ def draw_report_img(
                 color=(0, 255, 0) if color_flag else 255,
                 thickness=10,
             )
+    if cargo_outline_points is not None:
+        n_points = len(cargo_outline_points)
+        for i in range(n_points - 1):
+            img_out = cv2.line(
+                img_out,
+                pt1=tuple(cargo_outline_points[i]),
+                pt2=tuple(cargo_outline_points[i + 1]),
+                color=(0, 127, 255) if color_flag else 255,
+                thickness=2,
+            )
     if selected_ratio_lines_list is not None:
         for pt1, b_pt, _ in selected_ratio_lines_list:
             img_out = cv2.line(
@@ -483,3 +512,10 @@ def list_to_arrays(line, c):
 
 def clip(a, *args, **kwargs):
     return float(np.clip(a, *args, **kwargs))
+
+
+def last_argmax_axis1(a):
+    rev = a[:, ::-1]
+    args = np.argmax(rev, axis=1)
+    argsrev = [a.shape[1] - arg - 1 for arg in args]
+    return argsrev

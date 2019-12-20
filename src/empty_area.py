@@ -12,7 +12,7 @@ from numpy.linalg import norm
 log = logging.getLogger(__name__)
 
 
-def detect_lines_and_estimate_empty_ratio(edge_img, roi, vis_img):
+def detect_lines_and_estimate_empty_ratio(edge_img, roi, seg_edge_img, vis_img):
 
     intersection_img, line_points_list, tilted_line_points_list = detect_line_segments(
         edge_img
@@ -25,8 +25,9 @@ def detect_lines_and_estimate_empty_ratio(edge_img, roi, vis_img):
     front_ceiling_line_points_list = extract_front_ceiling_line_segments(
         line_points_list, pt0
     )
+    cargo_outline = estimate_cargo_outline(container_box, pt0, seg_edge_img)
     empty_ratio_dict, selected_ratio_lines_list = estimate_empty_area_ratio(
-        q_depth_line_points_list, container_box, pt0
+        q_depth_line_points_list, container_box, pt0, cargo_outline,
     )
     report_img = draw_report_img(
         vis_img,
@@ -266,7 +267,15 @@ def extract_front_ceiling_line_segments(line_points_list, pt0):
     return front_ceiling_line_points_list
 
 
-def estimate_empty_area_ratio(q_depth_line_points_list, container_box, pt0):
+def estimate_cargo_outline(container_box, pt0, seg_edge_img):
+    # TODO
+
+    return None  # cargo_outline
+
+
+def estimate_empty_area_ratio(
+    q_depth_line_points_list, container_box, pt0, cargo_outline
+):
     empty_ratio_dict = dict(empty_ratio=0, left_empty_ratio=0, right_empty_ratio=0)
     x_lower, y_lower, x_upper, y_upper = container_box
     box_dict = {

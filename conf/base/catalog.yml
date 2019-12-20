@@ -22,7 +22,12 @@ data/load/img_01.jpg:
   load_args:
     dict_structure: True
 
-data/load/img_seg_02.jpg:
+data/load/seg_img.jpg:
+  type: pipelinex.ImagesLocalDataSet
+  load_args:
+    dict_structure: True
+
+data/load/seg_edge_img.jpg:
   type: pipelinex.ImagesLocalDataSet
   load_args:
     dict_structure: True

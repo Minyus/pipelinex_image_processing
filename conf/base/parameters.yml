@@ -40,12 +40,19 @@ PIPELINES:
             max_size_factor: 3
             slic_zero: False
           - {=: pipelinex.fit_to_uint8}
-        outputs: img_seg_02
+        outputs: seg_img
 
-      - inputs: img_seg_02
+      - inputs: seg_img
         decorator: {=: pipelinex.dict_io}
         func: {=: roi.seg_to_roi}
         outputs: roi
+
+      - inputs: seg_img
+        func:
+          - {=: pipelinex.CvSobel, ddepth: CV_64F, dx: 0, dy: 1, ksize: 1}
+          - {=: pipelinex.NpAbs, _: }
+          - {=: pipelinex.fit_to_uint8}
+        outputs: seg_edge_img
 
       - inputs: img_01
         func:
@@ -65,7 +72,7 @@ PIPELINES:
           - {=: pipelinex.CvCanny, threshold1: 10, threshold2: 10, apertureSize: 5, L2gradient: True}
         outputs: img_03
 
-      - inputs: [img_03, roi, img_01]
+      - inputs: [img_03, roi, seg_edge_img, img_01]
         decorator: {=: pipelinex.dict_io}
         func: {=: empty_area.detect_lines_and_estimate_empty_ratio}
         outputs: [empty_ratios_dict, img_04_raw, img_05]

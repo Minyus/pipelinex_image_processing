@@ -66,7 +66,7 @@ PIPELINES:
           - {=: pipelinex.CvSobel, ddepth: CV_64F, dx: 0, dy: 1, ksize: 1}
           - {=: pipelinex.NpAbs, _: }
           - {=: pipelinex.CvThreshold, thresh: 0, maxval: 255, type: THRESH_BINARY}
-          - {=: pipelinex.ItemGetterInDict, item: 1}
+          - {=: pipelinex.ItemGetter, item: 1}
           - {=: pipelinex.fit_to_uint8}
         outputs: seg_edge_img
 

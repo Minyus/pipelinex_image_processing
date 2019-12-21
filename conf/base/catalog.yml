@@ -27,6 +27,11 @@ data/load/seg_img.png:
   load_args:
     dict_structure: True
 
+data/load/sem_seg_img.png:
+  type: pipelinex.ImagesLocalDataSet
+  load_args:
+    dict_structure: True
+
 data/load/seg_edge_img.png:
   type: pipelinex.ImagesLocalDataSet
   load_args:

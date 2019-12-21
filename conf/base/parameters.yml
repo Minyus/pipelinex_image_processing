@@ -47,7 +47,12 @@ PIPELINES:
         func: {=: roi.seg_to_roi}
         outputs: roi
 
-      - inputs: seg_img
+      - inputs: img_01
+        decorator: {=: pipelinex.dict_io}
+        func: {=: semantic_segmentation.get_semantic_segments}
+        outputs: sem_seg_img
+
+      - inputs: sem_seg_img
         func:
           - {=: pipelinex.CvSobel, ddepth: CV_64F, dx: 0, dy: 1, ksize: 1}
           - {=: pipelinex.NpAbs, _: }

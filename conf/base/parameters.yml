@@ -101,3 +101,7 @@ PIPELINES:
         decorator: {=: pipelinex.dict_io}
         func: {=: empty_area.visualize_lines_img}
         outputs: img_04
+
+      - inputs: [img_01, seg_edge_img]
+        func: {=: pipelinex.mix_up}
+        outputs: mix_seg_edge_img

@@ -11,12 +11,16 @@ def seg_to_roi(img):
         peripheral_seg_val_arr, n=2, axis=0
     )
     central_flag_2darr = np.all(central_flag_3darr, axis=2)
-    central_coo = coo_matrix(central_flag_2darr)
-    y_lower = int(np.percentile(central_coo.row, 5))
-    y_upper = int(np.percentile(central_coo.row, 95))
-    x_lower = int(np.percentile(central_coo.col, 5))
-    x_upper = int(np.percentile(central_coo.col, 95))
-    return np.array([x_lower, y_lower, x_upper, y_upper])
+    if central_flag_2darr.max():
+        central_coo = coo_matrix(central_flag_2darr)
+        y_lower = int(np.percentile(central_coo.row, 5))
+        y_upper = int(np.percentile(central_coo.row, 95))
+        x_lower = int(np.percentile(central_coo.col, 5))
+        x_upper = int(np.percentile(central_coo.col, 95))
+        return np.array([x_lower, y_lower, x_upper, y_upper])
+    else:
+        h, w = img.shape
+        return np.array([w // 2, h // 2, w // 2 + 1, h // 2 + 1])
 
 
 def repeat_expand_dims(a, n=1, **kwargs):

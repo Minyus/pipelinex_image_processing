@@ -283,9 +283,9 @@ def estimate_empty_region(container_box, pt0, seg_edge_img):
     outline_y = last_argmax(masked_seg_edge_img)
     outline_points = enumerate(outline_y)
     empty_region_points = [
-        (np.array(pt), np.array([pt[0], y_upper]))
+        (np.array([pt[0], np.clip(pt[1], pt0[1], y_upper)]), np.array([pt[0], y_upper]))
         for pt in outline_points
-        if (x_lower < pt[0] < x_upper) and (pt0[1] < pt[1] < y_upper)
+        if (x_lower < pt[0] < x_upper)
     ]
 
     return empty_region_points

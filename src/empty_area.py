@@ -25,9 +25,9 @@ def detect_lines_and_estimate_empty_ratio(edge_img, roi, seg_edge_img, vis_img):
     front_ceiling_line_points_list = extract_front_ceiling_line_segments(
         line_points_list, pt0
     )
-    cargo_outline_points = estimate_cargo_outline(container_box, pt0, seg_edge_img)
+    empty_region_points_list = estimate_empty_region(container_box, pt0, seg_edge_img)
     empty_ratio_dict, selected_ratio_lines_list = estimate_empty_area_ratio(
-        q_depth_line_points_list, container_box, pt0, cargo_outline_points,
+        q_depth_line_points_list, container_box, pt0, empty_region_points_list,
     )
     report_img = draw_report_img(
         vis_img,
@@ -36,7 +36,7 @@ def detect_lines_and_estimate_empty_ratio(edge_img, roi, seg_edge_img, vis_img):
         front_ceiling_line_points_list,
         container_box,
         pt0,
-        cargo_outline_points,
+        empty_region_points_list,
         selected_ratio_lines_list,
     )
     return empty_ratio_dict, intersection_img, report_img
@@ -268,7 +268,7 @@ def extract_front_ceiling_line_segments(line_points_list, pt0):
     return front_ceiling_line_points_list
 
 
-def estimate_cargo_outline(container_box, pt0, seg_edge_img):
+def estimate_empty_region(container_box, pt0, seg_edge_img):
 
     x_lower, y_lower, x_upper, y_upper = container_box
 
@@ -282,17 +282,17 @@ def estimate_cargo_outline(container_box, pt0, seg_edge_img):
 
     outline_y = last_argmax(masked_seg_edge_img)
     outline_points = enumerate(outline_y)
-    outline_points = [
-        pt
+    empty_region_points = [
+        (np.array(pt), np.array([pt[0], y_upper]))
         for pt in outline_points
         if (x_lower < pt[0] < x_upper) and (pt0[1] < pt[1] < y_upper)
     ]
 
-    return outline_points
+    return empty_region_points
 
 
 def estimate_empty_area_ratio(
-    q_depth_line_points_list, container_box, pt0, cargo_outline
+    q_depth_line_points_list, container_box, pt0, empty_region_points_list
 ):
     empty_ratio_dict = dict(empty_ratio=0, left_empty_ratio=0, right_empty_ratio=0)
     x_lower, y_lower, x_upper, y_upper = container_box
@@ -325,18 +325,23 @@ def estimate_empty_area_ratio(
         else:
             return None
 
-    def get_ratio_line(pt, box):
+    def get_ratio_line(pt, q_index):
+        if q_index >= 4:
+            return ratio_line_y(pt, y_upper)
+        box = box_dict[q_index]
         y_flag = sin_vp(pt) > sin_vp(np.array(box))
         if y_flag:
             return ratio_line_y(pt, box[1])
         else:
             return ratio_line_x(pt, box[0])
 
+    if empty_region_points_list is not None:
+        q_depth_line_points_list.append(empty_region_points_list)
+
     q_ratio_line_list = []
-    for i in range(4):
-        line_points_list = q_depth_line_points_list[i]
+    for i, line_points_list in enumerate(q_depth_line_points_list):
         ratio_line_list = [
-            get_ratio_line(pt1, box=box_dict[i]) for pt1, _, in line_points_list
+            get_ratio_line(pt1, q_index=i) for pt1, _, in line_points_list
         ]
         q_ratio_line_list.append(ratio_line_list)
 
@@ -345,6 +350,7 @@ def estimate_empty_area_ratio(
     )
     bottom_left_ratio_line = get_lines_with_max_ratio(q_ratio_line_list[2])
     bottom_right_ratio_line = get_lines_with_max_ratio(q_ratio_line_list[3])
+    empty_region_ratio_line = get_line_mean(q_ratio_line_list[4])
 
     selected_ratio_lines_list = []
     if top_ratio_line is None:
@@ -362,8 +368,11 @@ def estimate_empty_area_ratio(
         else:
             right_ratio = clip(bottom_right_ratio_line[2] / top_ratio_line[2], 0, 1)
             selected_ratio_lines_list.append(bottom_right_ratio_line)
+        if empty_region_ratio_line is not None:
+            empty_ratio = clip(empty_region_ratio_line[2] / top_ratio_line[2], 0, 1)
+            selected_ratio_lines_list.append(empty_region_ratio_line)
 
-    empty_ratio_dict["empty_ratio"] = (left_ratio + right_ratio) / 2
+    empty_ratio_dict["empty_ratio"] = empty_ratio
     empty_ratio_dict["left_empty_ratio"] = left_ratio
     empty_ratio_dict["right_empty_ratio"] = right_ratio
 
@@ -377,7 +386,7 @@ def draw_report_img(
     front_ceiling_line_points_list=None,
     container_box=None,
     pt0=None,
-    cargo_outline_points=None,
+    empty_region_points_list=None,
     selected_ratio_lines_list=None,
 ):
     color_flag = img.ndim == 3
@@ -443,13 +452,13 @@ def draw_report_img(
                 color=(0, 255, 0) if color_flag else 255,
                 thickness=10,
             )
-    if cargo_outline_points is not None:
-        n_points = len(cargo_outline_points)
+    if empty_region_points_list is not None:
+        n_points = len(empty_region_points_list)
         for i in range(n_points - 1):
             img_out = cv2.line(
                 img_out,
-                pt1=tuple(cargo_outline_points[i]),
-                pt2=tuple(cargo_outline_points[i + 1]),
+                pt1=tuple(empty_region_points_list[i][0]),
+                pt2=tuple(empty_region_points_list[i + 1][0]),
                 color=(0, 127, 255) if color_flag else 255,
                 thickness=2,
             )
@@ -522,3 +531,18 @@ def last_argmax(a, axis=0):
     args = np.argmax(rev, axis=axis)
     argsrev = [a.shape[axis] - arg - 1 for arg in args]
     return argsrev
+
+
+def unzip(zipped_list):
+    return zip(*zipped_list)
+
+
+def get_line_mean(tuple_list):
+    unzipped = unzip(tuple_list)
+    mean_list = [
+        np.mean(np.stack(item), axis=0).astype(np.int64)
+        if isinstance(item[0], np.ndarray)
+        else np.mean(item)
+        for item in unzipped
+    ]
+    return tuple(mean_list)

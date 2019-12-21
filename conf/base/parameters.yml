@@ -49,13 +49,21 @@ PIPELINES:
 
       - inputs: img_01
         decorator: {=: pipelinex.dict_io}
-        func: {=: semantic_segmentation.get_semantic_segments}
+        func:
+          - {=: semantic_segmentation.get_semantic_segments}
+        outputs: raw_sem_seg_img
+
+      - inputs: raw_sem_seg_img
+        func:
+          - {=: pipelinex.fit_to_uint8}
         outputs: sem_seg_img
 
       - inputs: sem_seg_img
         func:
           - {=: pipelinex.CvSobel, ddepth: CV_64F, dx: 0, dy: 1, ksize: 1}
           - {=: pipelinex.NpAbs, _: }
+          - {=: pipelinex.CvThreshold, thresh: 0, maxval: 255, type: THRESH_BINARY}
+          - {=: pipelinex.ItemGetterInDict, item: 1}
           - {=: pipelinex.fit_to_uint8}
         outputs: seg_edge_img
 

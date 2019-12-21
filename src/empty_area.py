@@ -280,8 +280,8 @@ def estimate_cargo_outline(container_box, pt0, seg_edge_img):
     mask_img = cv2.fillConvexPoly(mask_img, points=points, color=1)
     masked_seg_edge_img = (seg_edge_img > 1).astype(np.uint8) * mask_img
 
-    outline_y = last_argmax_axis1(masked_seg_edge_img)
-    outline_points = zip(range(len(outline_y)), outline_y)
+    outline_y = last_argmax(masked_seg_edge_img)
+    outline_points = enumerate(outline_y)
     outline_points = [
         pt
         for pt in outline_points
@@ -514,8 +514,11 @@ def clip(a, *args, **kwargs):
     return float(np.clip(a, *args, **kwargs))
 
 
-def last_argmax_axis1(a):
-    rev = a[:, ::-1]
-    args = np.argmax(rev, axis=1)
-    argsrev = [a.shape[1] - arg - 1 for arg in args]
+def last_argmax(a, axis=0):
+    if axis == 0:
+        rev = a[::-1, ...]
+    if axis == 1:
+        rev = a[:, ::-1]
+    args = np.argmax(rev, axis=axis)
+    argsrev = [a.shape[axis] - arg - 1 for arg in args]
     return argsrev

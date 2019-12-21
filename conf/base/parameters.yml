@@ -58,6 +58,9 @@ PIPELINES:
           - {=: pipelinex.fit_to_uint8}
         outputs: sem_seg_img
 
+#      - inputs: seg_img
+#        outputs: sem_seg_img
+
       - inputs: sem_seg_img
         func:
           - {=: pipelinex.CvSobel, ddepth: CV_64F, dx: 0, dy: 1, ksize: 1}

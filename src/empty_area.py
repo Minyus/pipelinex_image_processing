@@ -401,7 +401,15 @@ def draw_report_img(
                 thickness=1,
             )
     if q_depth_line_points_list is not None:
-        depth_line_points_list = flatten(q_depth_line_points_list)
+        for pt1, pt2 in q_depth_line_points_list[4]:
+            img_out = cv2.line(
+                img_out,
+                pt1=tuple(pt1),
+                pt2=tuple(pt2),
+                color=(0, 127, 255) if color_flag else 191,
+                thickness=1,
+            )
+        depth_line_points_list = flatten(q_depth_line_points_list[:4])
         for pt1, pt2 in depth_line_points_list:
             img_out = cv2.line(
                 img_out,
@@ -452,16 +460,16 @@ def draw_report_img(
                 color=(0, 255, 0) if color_flag else 255,
                 thickness=10,
             )
-    if empty_region_points_list is not None:
-        n_points = len(empty_region_points_list)
-        for i in range(n_points - 1):
-            img_out = cv2.line(
-                img_out,
-                pt1=tuple(empty_region_points_list[i][0]),
-                pt2=tuple(empty_region_points_list[i + 1][0]),
-                color=(0, 127, 255) if color_flag else 255,
-                thickness=2,
-            )
+    # if empty_region_points_list is not None:
+    #     n_points = len(empty_region_points_list)
+    #     for i in range(n_points - 1):
+    #         img_out = cv2.line(
+    #             img_out,
+    #             pt1=tuple(empty_region_points_list[i][0]),
+    #             pt2=tuple(empty_region_points_list[i + 1][0]),
+    #             color=(0, 127, 255) if color_flag else 255,
+    #             thickness=2,
+    #         )
     if selected_ratio_lines_list is not None:
         for pt1, b_pt, _ in selected_ratio_lines_list:
             img_out = cv2.line(

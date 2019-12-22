@@ -29,16 +29,19 @@ PIPELINES:
 
       - inputs: img_01
         func:
-          - =: pipelinex.SkimageSegmentationSlic
-            n_segments: 30
-            compactness: 10.0
-            max_iter: 10
-            sigma: 0
-            convert2lab: True
-            enforce_connectivity: True
-            min_size_factor: 0.5
-            max_size_factor: 3
-            slic_zero: False
+#          - =: pipelinex.SkimageSegmentationSlic
+#            n_segments: 30
+#            compactness: 10.0
+#            max_iter: 10
+#            sigma: 0
+#            convert2lab: True
+#            enforce_connectivity: True
+#            min_size_factor: 0.5
+#            max_size_factor: 3
+#            slic_zero: False
+          - =: pipelinex.SkimageSegmentationFelzenszwalb
+            scale: 500
+            sigma: 5
           - {=: pipelinex.fit_to_uint8}
         outputs: seg_img
 

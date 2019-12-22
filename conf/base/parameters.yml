@@ -102,8 +102,14 @@ PIPELINES:
         func: {=: empty_area.visualize_lines_img}
         outputs: img_04
 
-      - inputs: [img_01, raw_sem_seg_img]
+      - inputs: [img_01, seg_img]
         func:
           - {=: pipelinex.SkimageMarkBoundaries, mode: outer}
           - {=: pipelinex.fit_to_uint8}
-        outputs: mix_seg_edge_img
+        outputs: vis_seg_edge_img
+
+      - inputs: [img_01, sem_seg_img]
+        func:
+          - {=: pipelinex.SkimageMarkBoundaries, mode: outer}
+          - {=: pipelinex.fit_to_uint8}
+        outputs: vis_sem_seg_edge_img

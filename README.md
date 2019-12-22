@@ -15,6 +15,8 @@ A project to use [PipelineX](https://github.com/Minyus/pipelinex) for image proc
     - The algorithm to estimate empty area ratio 
   - `roi.py`
     - Supplementary algorithm to compute ROI (Region of Interest) from segmentation image
+  - `semantic_segmentation.py`
+    - Semantic segmentation using PSPNet model pretrained with ADE20K dataset
 
 ## How to run the code
 

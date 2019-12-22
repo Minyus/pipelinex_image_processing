@@ -22,18 +22,20 @@ A project to use [PipelineX](https://github.com/Minyus/pipelinex) for image proc
 
 #### Install PipelineX
 
-Option 1: PyPI
-```bash
-$ pip3 install pipelinex==0.1.5
-```
-
-Option 2: GitHub repository
 ```bash
 $ pip3 install git+https://github.com/Minyus/pipelinex.git
 ```
 
+#### Install fork of keras-segmentation modified to work with TensorFlow 2
+
+```bash
+$ pip3 install git+https://github.com/Minyus/image-segmentation-keras.git
+```
+
 #### Install the other dependencies
 ```
+Keras==2.3.1
+tensorflow==2.0.0
 opencv-python==3.4.5.20
 scikit-image==0.16.2
 ocrd-fork-pylsd==0.0.3

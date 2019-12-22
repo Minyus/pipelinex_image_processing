@@ -294,7 +294,6 @@ def estimate_empty_region(container_box, pt0, seg_edge_img):
 def estimate_empty_area_ratio(
     q_depth_line_points_list, container_box, pt0, empty_region_points_list
 ):
-    empty_ratio_dict = dict(empty_ratio=0, left_empty_ratio=0, right_empty_ratio=0)
     x_lower, y_lower, x_upper, y_upper = container_box
     box_dict = {
         0: [x_lower, y_lower],
@@ -372,9 +371,11 @@ def estimate_empty_area_ratio(
             empty_ratio = clip(empty_region_ratio_line[2] / top_ratio_line[2], 0, 1)
             selected_ratio_lines_list.append(empty_region_ratio_line)
 
-    empty_ratio_dict["empty_ratio"] = empty_ratio
-    empty_ratio_dict["left_empty_ratio"] = left_ratio
-    empty_ratio_dict["right_empty_ratio"] = right_ratio
+    empty_ratio_dict = dict()
+    empty_ratio_dict["empty_ratio_based_on_segments"] = empty_ratio
+    empty_ratio_dict["empty_ratio_based_on_edges"] = (left_ratio + right_ratio) / 2
+    empty_ratio_dict["left_empty_ratio_based_on_edges"] = left_ratio
+    empty_ratio_dict["right_empty_ratio_based_on_edges"] = right_ratio
 
     return empty_ratio_dict, selected_ratio_lines_list
 

@@ -32,6 +32,10 @@ PIPELINES:
           - =: pipelinex.SkimageSegmentationFelzenszwalb
             scale: 500
             sigma: 5
+        outputs: raw_graph_seg_img
+
+      - inputs: raw_graph_seg_img
+        func:
           - {=: pipelinex.fit_to_uint8}
         outputs: graph_seg_img
 
@@ -39,6 +43,9 @@ PIPELINES:
         decorator: {=: pipelinex.dict_io}
         func: {=: roi.seg_to_roi}
         outputs: roi
+
+#      - inputs: raw_graph_seg_img
+#        outputs: raw_sem_seg_img
 
       - inputs: img_01
         decorator: {=: pipelinex.dict_io}

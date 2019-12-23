@@ -61,17 +61,6 @@ PIPELINES:
           - {=: pipelinex.fit_to_uint8}
         outputs: sem_seg_img
 
-#      - inputs: graph_seg_img
-#        outputs: sem_seg_img
-
-#      - inputs: raw_sem_seg_img
-#        func:
-#          - {=: pipelinex.CvSobel, ddepth: CV_64F, dx: 0, dy: 1, ksize: 1}
-#          - {=: pipelinex.NpAbs, _: }
-#          - {=: pipelinex.CvThreshold, thresh: 0, maxval: 255, type: THRESH_BINARY}
-#          - {=: pipelinex.ItemGetter, item: 1}
-#        outputs: raw_seg_edge_img
-
       - inputs: img_01
         func:
           - {=: pipelinex.NpZerosLike, _: }

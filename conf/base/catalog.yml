@@ -61,7 +61,7 @@ data/load/img_05.jpg:
 data/load/empty_ratios_df.csv:
   type: CSVLocalDataSet
 
-data/load/vis_seg_edge_img.jpg:
+data/load/vis_graph_seg_edge_img.jpg:
   type: pipelinex.ImagesLocalDataSet
   reverse_color: True
   load_args:

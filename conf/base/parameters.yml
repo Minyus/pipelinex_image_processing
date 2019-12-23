@@ -43,9 +43,9 @@ PIPELINES:
             scale: 500
             sigma: 5
           - {=: pipelinex.fit_to_uint8}
-        outputs: seg_img
+        outputs: graph_seg_img
 
-      - inputs: seg_img
+      - inputs: graph_seg_img
         decorator: {=: pipelinex.dict_io}
         func: {=: roi.seg_to_roi}
         outputs: roi
@@ -61,15 +61,30 @@ PIPELINES:
           - {=: pipelinex.fit_to_uint8}
         outputs: sem_seg_img
 
-#      - inputs: seg_img
+#      - inputs: graph_seg_img
 #        outputs: sem_seg_img
 
-      - inputs: sem_seg_img
+#      - inputs: raw_sem_seg_img
+#        func:
+#          - {=: pipelinex.CvSobel, ddepth: CV_64F, dx: 0, dy: 1, ksize: 1}
+#          - {=: pipelinex.NpAbs, _: }
+#          - {=: pipelinex.CvThreshold, thresh: 0, maxval: 255, type: THRESH_BINARY}
+#          - {=: pipelinex.ItemGetter, item: 1}
+#        outputs: raw_seg_edge_img
+
+      - inputs: img_01
         func:
-          - {=: pipelinex.CvSobel, ddepth: CV_64F, dx: 0, dy: 1, ksize: 1}
-          - {=: pipelinex.NpAbs, _: }
-          - {=: pipelinex.CvThreshold, thresh: 0, maxval: 255, type: THRESH_BINARY}
-          - {=: pipelinex.ItemGetter, item: 1}
+          - {=: pipelinex.NpZerosLike, _: }
+        outputs: zero_img
+
+      - inputs: [zero_img, raw_sem_seg_img]
+        func:
+          - {=: pipelinex.SkimageMarkBoundaries, mode: outer, color: 1}
+          - {=: pipelinex.NpMean, axis: 2}
+        outputs: raw_seg_edge_img
+
+      - inputs: raw_seg_edge_img
+        func:
           - {=: pipelinex.fit_to_uint8}
         outputs: seg_edge_img
 
@@ -91,7 +106,7 @@ PIPELINES:
           - {=: pipelinex.CvCanny, threshold1: 10, threshold2: 10, apertureSize: 5, L2gradient: True}
         outputs: img_03
 
-      - inputs: [img_03, roi, seg_edge_img, img_01]
+      - inputs: [img_03, roi, raw_seg_edge_img, img_01]
         decorator: {=: pipelinex.dict_io}
         func: {=: empty_area.detect_lines_and_estimate_empty_ratio}
         outputs: [empty_ratios_dict, img_04_raw, img_05]
@@ -105,11 +120,11 @@ PIPELINES:
         func: {=: empty_area.visualize_lines_img}
         outputs: img_04
 
-      - inputs: [img_01, seg_img]
+      - inputs: [img_01, graph_seg_img]
         func:
           - {=: pipelinex.SkimageMarkBoundaries, mode: outer}
           - {=: pipelinex.fit_to_uint8}
-        outputs: vis_seg_edge_img
+        outputs: vis_graph_seg_edge_img
 
       - inputs: [img_01, sem_seg_img]
         func:

@@ -273,12 +273,18 @@ def estimate_empty_region(container_box, pt0, seg_edge_img):
     x_lower, y_lower, x_upper, y_upper = container_box
 
     points = np.stack(
-        [np.array([x_lower, y_upper]), np.array([x_upper, y_upper]), pt0,]
+        [
+            np.array([x_lower, y_upper]),
+            np.array([x_upper, y_upper]),
+            np.array([x_upper, pt0[1]]),
+            np.array([x_lower, pt0[1]]),
+        ]
     )
 
-    mask_img = np.zeros_like(seg_edge_img)
+    binary_seg_edge_img = (seg_edge_img > 0).astype(np.uint8)
+    mask_img = np.zeros_like(binary_seg_edge_img)
     mask_img = cv2.fillConvexPoly(mask_img, points=points, color=1)
-    masked_seg_edge_img = (seg_edge_img > 1).astype(np.uint8) * mask_img
+    masked_seg_edge_img = binary_seg_edge_img * mask_img
 
     outline_y = last_argmax(masked_seg_edge_img)
     outline_points = enumerate(outline_y)

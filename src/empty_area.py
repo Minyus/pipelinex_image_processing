@@ -233,12 +233,12 @@ def estimate_container_box(q_depth_line_points_list, roi, pt0):
     x_upper_list = [v for v in pt2_x_list if v > pt0[0]]
     y_upper_list = [v for v in pt2_y_list if v > pt0[1]]
 
-    roi_weight = 1
-
-    x_lower_list.extend([container_box[0]] * roi_weight)
-    y_lower_list.extend([container_box[1]] * roi_weight)
-    x_upper_list.extend([container_box[2]] * roi_weight)
-    y_upper_list.extend([container_box[3]] * roi_weight)
+    # roi_weight = 1
+    #
+    # x_lower_list.extend([container_box[0]] * roi_weight)
+    # y_lower_list.extend([container_box[1]] * roi_weight)
+    # x_upper_list.extend([container_box[2]] * roi_weight)
+    # y_upper_list.extend([container_box[3]] * roi_weight)
 
     x_lower_list.sort()
     y_lower_list.sort()

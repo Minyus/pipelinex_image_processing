@@ -1,13 +1,5 @@
-# Kedro DataSets:
-# https://kedro.readthedocs.io/en/latest/kedro.io.html#data-sets
-# https://kedro.readthedocs.io/en/latest/kedro.contrib.io.html
-
-/:
-  type: CSVLocalDataSet
-#  type: PickleLocalDataSet
-#  type: JSONLocalDataSet
-#  type: kedro.contrib.io.yaml_local.YAMLLocalDataSet
-  cached: False
+# [reference](https://kedro.readthedocs.io/en/latest/04_user_guide/04_data_catalog.html)
+# [datasets](https://kedro.readthedocs.io/en/latest/kedro.extras.datasets.html)
 
 img_00:
   type: pipelinex.ImagesLocalDataSet
@@ -59,7 +51,7 @@ data/load/img_05.jpg:
     dict_structure: True
 
 data/load/empty_ratios_df.csv:
-  type: CSVLocalDataSet
+  type: pipelinex.CSVLocalDataSet
 
 data/load/vis_graph_seg_edge_img.jpg:
   type: pipelinex.ImagesLocalDataSet

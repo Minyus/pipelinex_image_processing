@@ -15,12 +15,6 @@ img_01:
   <<: *images
   path: data/load/img_01
 
-seg_img:
-  <<: *images
-  path: data/load/seg_img
-  save_args:
-    suffix: .png
-
 sem_seg_img:
   <<: *images
   path: data/load/sem_seg_img
@@ -30,6 +24,8 @@ sem_seg_img:
 seg_edge_img:
   <<: *images
   path: data/load/seg_edge_img
+  save_args:
+    suffix: .png
 
 img_02:
   <<: *images

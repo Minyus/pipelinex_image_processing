@@ -2,64 +2,75 @@
 # [datasets](https://kedro.readthedocs.io/en/latest/kedro.extras.datasets.html)
 
 img_00:
-  type: pipelinex.ImagesLocalDataSet
-  reverse_color: True
-  load_args:
-    dict_structure: True
-  filepath: "data/input/TRIMG"
-
-data/load/img_01.jpg:
+  path: data/input/TRIMG
   type: pipelinex.ImagesLocalDataSet
   reverse_color: True
   load_args:
     dict_structure: True
 
-data/load/seg_img.png:
-  type: pipelinex.ImagesLocalDataSet
-  load_args:
-    dict_structure: True
-
-data/load/sem_seg_img.png:
-  type: pipelinex.ImagesLocalDataSet
-  load_args:
-    dict_structure: True
-
-data/load/seg_edge_img.png:
-  type: pipelinex.ImagesLocalDataSet
-  load_args:
-    dict_structure: True
-
-data/load/img_02.jpg:
-  type: pipelinex.ImagesLocalDataSet
-  load_args:
-    dict_structure: True
-
-data/load/img_03.jpg:
-  type: pipelinex.ImagesLocalDataSet
-  load_args:
-    dict_structure: True
-
-data/load/img_04.jpg:
-  type: pipelinex.ImagesLocalDataSet
-  load_args:
-    dict_structure: True
-
-data/load/img_05.jpg:
+img_01:
+  path: data/load/img_01.jpg
   type: pipelinex.ImagesLocalDataSet
   reverse_color: True
   load_args:
     dict_structure: True
 
-data/load/empty_ratios_df.csv:
+seg_img:
+  path: data/load/seg_img.png
+  type: pipelinex.ImagesLocalDataSet
+  load_args:
+    dict_structure: True
+
+sem_seg_img:
+  path: data/load/sem_seg_img.png
+  type: pipelinex.ImagesLocalDataSet
+  load_args:
+    dict_structure: True
+
+seg_edge_img:
+  path: data/load/seg_edge_img
+  type: pipelinex.ImagesLocalDataSet
+  load_args:
+    dict_structure: True
+
+img_02:
+  path: data/load/img_02.jpg
+  type: pipelinex.ImagesLocalDataSet
+  load_args:
+    dict_structure: True
+
+img_03:
+  path: data/load/img_03.jpg
+  type: pipelinex.ImagesLocalDataSet
+  load_args:
+    dict_structure: True
+
+img_04:
+  path: data/load/img_04.jpg
+  type: pipelinex.ImagesLocalDataSet
+  load_args:
+    dict_structure: True
+
+img_05:
+  path: data/load/img_05.jpg
+  type: pipelinex.ImagesLocalDataSet
+  reverse_color: True
+  load_args:
+    dict_structure: True
+
+empty_ratios_df:
+  filepath: data/load/empty_ratios_df.csv
   type: pipelinex.CSVLocalDataSet
 
-data/load/vis_graph_seg_edge_img.jpg:
+vis_graph_seg_edge_img:
+  path: data/load/vis_graph_seg_edge_img.jpg
   type: pipelinex.ImagesLocalDataSet
   reverse_color: True
   load_args:
     dict_structure: True
 
-data/load/vis_sem_seg_edge_img.jpg:
+vis_sem_seg_edge_img:
+  path: data/load/vis_sem_seg_edge_img.jpg
   type: pipelinex.ImagesLocalDataSet
   reverse_color: True
   load_args:

@@ -22,42 +22,24 @@ A project to use [PipelineX](https://github.com/Minyus/pipelinex) for image proc
 
 ### 1. Install Python packages
 
-#### Install PipelineX
+#### Install tensorflow 1.x and keras-segmentation
 
 ```bash
-$ pip3 install git+https://github.com/Minyus/pipelinex.git
+$ pip install tensorflow<2 keras-segmentation
 ```
 
-#### Install tensorflow and keras-segmentation
+##### If you want to use TensorFlow 2.x, install fork of keras-segmentation modified to work with TensorFlow 2.x
 
 ```bash
-$ pip3 install tensorflow<2 keras-segmentation
+$ pip install tensorflow>=2.0.0
+$ pip install git+https://github.com/Minyus/image-segmentation-keras.git
 ```
 
-##### If you want to use TensorFlow 2, install fork of keras-segmentation modified to work with TensorFlow 2
+#### Install the other packages 
 
 ```bash
-$ pip3 install tensorflow==2.0.0
-$ pip3 install git+https://github.com/Minyus/image-segmentation-keras.git
+$ pip install pipelinex opencv-python scikit-image ocrd-fork-pylsd Keras Pillow pandas numpy requests kedro mlflow
 ```
-
-#### Install the other dependencies
-
-```
-Keras==2.3.1
-opencv-python==3.4.5.20
-scikit-image==0.16.2
-ocrd-fork-pylsd==0.0.3
-Pillow==4.3.0
-numpy==1.16.4
-scipy==1.2.1
-kedro==0.15.5
-mlflow==1.4.0
-pandas==0.25.1
-PyYAML==5.2
-```
-
-These versions are recommended, but other recent versions will likely work.
 
 ### 2. Clone `https://github.com/Minyus/pipelinex_image_processing.git`
 
@@ -66,27 +48,17 @@ $ git clone https://github.com/Minyus/pipelinex_image_processing.git
 $ cd pipelinex_image_processing
 ```
 
-### 3. Place input images in `data/input/TRIMG` folder
-
-Example images:
-![Image](https://cdn.foodlogistics.com/files/base/acbm/fl/image/2018/09/960w/GettyImages_485190815.5b9bfb5550ded.jpg)
-![Image](https://www.thetrailerconnection.com/zupload/library/180/-1279-840x600-0.jpg)
-
-### 4. Run `main.py`
+### 3. Run `main.py`
 
 ```bash
 $ python main.py
 ```
 
-## Recommended environment
+As configured in [catalog.yml](https://github.com/Minyus/pipelinex_image_processing/blob/master/conf/base/catalog.yml), the following 2 images will be downloaded by http requests. 
 
-- Python 3.6.8 (Python 3.6.x will likely work.)
-- Ubuntu 18.04.3 LTS (Recent Linux versions will likely work.)
+![Image](https://cdn.foodlogistics.com/files/base/acbm/fl/image/2018/09/960w/GettyImages_485190815.5b9bfb5550ded.jpg)
+![Image](https://www.thetrailerconnection.com/zupload/library/180/-1279-840x600-0.jpg)
 
-## Author
+## Tested environment
 
-Yusuke Minami
-
-- [GitHub](https://github.com/Minyus)
-- [Linkedin](https://www.linkedin.com/in/yusukeminami/)
-- [Twitter](https://twitter.com/Minyus86)
+- Python 3.6.8

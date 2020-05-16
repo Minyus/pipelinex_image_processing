@@ -68,8 +68,9 @@ $ cd pipelinex_image_processing
 
 ### 3. Place input images in `data/input/TRIMG` folder
 
-An example image is at:
-https://cdn.foodlogistics.com/files/base/acbm/fl/image/2018/09/960w/GettyImages_485190815.5b9bfb5550ded.jpg
+Example images:
+![Image](https://cdn.foodlogistics.com/files/base/acbm/fl/image/2018/09/960w/GettyImages_485190815.5b9bfb5550ded.jpg)
+![Image](https://www.thetrailerconnection.com/zupload/library/180/-1279-840x600-0.jpg)
 
 ### 4. Run `main.py`
 

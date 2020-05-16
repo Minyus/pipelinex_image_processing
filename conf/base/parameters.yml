@@ -1,4 +1,3 @@
-
 RUN_CONFIG:
   pipeline_name: __default__
   only_missing: False
@@ -12,19 +11,21 @@ RUN_CONFIG:
 
 MLFLOW_LOGGING_CONFIG:
   offset_hours: 0
-  logging_artifacts:  # None
-  
+  logging_artifacts: # None
+
 PIPELINES:
   __default__:
     =: pipelinex.FlexiblePipeline
     parameters_in_inputs: False
-    module:  # None
+    module: # None
     decorator: pipelinex.log_time
     nodes:
+      - inputs: remote_img
+        outputs: img_00
 
       - inputs: img_00
         func:
-          - {=: pipelinex.CvResize, dsize: "(512, 512)"}
+          - { =: pipelinex.CvResize, dsize: "(512, 512)" }
         outputs: img_01
 
       - inputs: img_01
@@ -36,84 +37,84 @@ PIPELINES:
 
       - inputs: raw_graph_seg_img
         func:
-          - {=: pipelinex.fit_to_uint8}
+          - { =: pipelinex.fit_to_uint8 }
         outputs: graph_seg_img
 
       - inputs: graph_seg_img
-        decorator: {=: pipelinex.dict_io}
-        func: {=: roi.seg_to_roi}
+        decorator: { =: pipelinex.dict_io }
+        func: { =: roi.seg_to_roi }
         outputs: roi
 
-#      - inputs: raw_graph_seg_img
-#        outputs: raw_sem_seg_img
+      #      - inputs: raw_graph_seg_img
+      #        outputs: raw_sem_seg_img
 
       - inputs: img_01
-        decorator: {=: pipelinex.dict_io}
+        decorator: { =: pipelinex.dict_io }
         func:
-          - {=: semantic_segmentation.get_semantic_segments}
+          - { =: semantic_segmentation.get_semantic_segments }
         outputs: raw_sem_seg_img
 
       - inputs: raw_sem_seg_img
         func:
-          - {=: pipelinex.fit_to_uint8}
+          - { =: pipelinex.fit_to_uint8 }
         outputs: sem_seg_img
 
       - inputs: img_01
         func:
-          - {=: pipelinex.NpZerosLike, _: }
+          - { =: pipelinex.NpZerosLike, _ }
         outputs: zero_img
 
       - inputs: [zero_img, raw_sem_seg_img]
         func:
-          - {=: pipelinex.SkimageMarkBoundaries, mode: outer, color: 1}
-          - {=: pipelinex.NpMean, axis: 2}
+          - { =: pipelinex.SkimageMarkBoundaries, mode: outer, color: 1 }
+          - { =: pipelinex.NpMean, axis: 2 }
         outputs: raw_seg_edge_img
 
       - inputs: raw_seg_edge_img
         func:
-          - {=: pipelinex.fit_to_uint8}
+          - { =: pipelinex.fit_to_uint8 }
         outputs: seg_edge_img
 
       - inputs: img_01
         func:
-#          - {=: pipelinex.CvBGR2HSV, _: }
-          - {=: pipelinex.CvBGR2Gray, _: }
-          - {=: pipelinex.CvEqualizeHist, _: }
-#          - {=: pipelinex.CvBlur, ksize: "(5, 5)"}
-#          - {=: pipelinex.CvMedianBlur, ksize: 5}
-#          - {=: pipelinex.CvBilateralFilter, d: 9, sigmaColor: 200, sigmaSpace: 200}
-          - {=: pipelinex.CvGaussianBlur, ksize: "(5, 5)", sigmaX: 3}
+          #          - {=: pipelinex.CvBGR2HSV, _: }
+          - { =: pipelinex.CvBGR2Gray, _ }
+          - { =: pipelinex.CvEqualizeHist, _ }
+          #          - {=: pipelinex.CvBlur, ksize: "(5, 5)"}
+          #          - {=: pipelinex.CvMedianBlur, ksize: 5}
+          #          - {=: pipelinex.CvBilateralFilter, d: 9, sigmaColor: 200, sigmaSpace: 200}
+          - { =: pipelinex.CvGaussianBlur, ksize: "(5, 5)", sigmaX: 3 }
         outputs: img_02
 
       - inputs: img_02
         func:
-#          - {=: pipelinex.CvDiagonalEdgeFilter2d, ddepth: -1, kernel_type: 1}
-#          - {=: pipelinex.fit_to_uint8}
-          - {=: pipelinex.CvCanny, threshold1: 10, threshold2: 10, apertureSize: 5, L2gradient: True}
+          #          - {=: pipelinex.CvDiagonalEdgeFilter2d, ddepth: -1, kernel_type: 1}
+          #          - {=: pipelinex.fit_to_uint8}
+          - { =: pipelinex.CvCanny, threshold1: 10, threshold2: 10, apertureSize: 5, L2gradient: True }
         outputs: img_03
 
       - inputs: [img_03, roi, raw_seg_edge_img, img_01]
-        decorator: {=: pipelinex.dict_io}
-        func: {=: empty_area.detect_lines_and_estimate_empty_ratio}
+        decorator: { =: pipelinex.dict_io }
+        func: { =: empty_area.detect_lines_and_estimate_empty_ratio }
         outputs: [empty_ratios_dict, img_04_raw, img_05]
 
       - inputs: empty_ratios_dict
-        func: {=: pipelinex.NestedDictToDf, index_name: image}
+        func: { =: pipelinex.NestedDictToDf, index_name: image }
         outputs: empty_ratios_df
 
       - inputs: img_04_raw
-        decorator: {=: pipelinex.dict_io}
-        func: {=: empty_area.visualize_lines_img}
+        decorator: { =: pipelinex.dict_io }
+        func: { =: empty_area.visualize_lines_img }
         outputs: img_04
 
       - inputs: [img_01, graph_seg_img]
         func:
-          - {=: pipelinex.SkimageMarkBoundaries, mode: outer}
-          - {=: pipelinex.fit_to_uint8}
+          - { =: pipelinex.SkimageMarkBoundaries, mode: outer }
+          - { =: pipelinex.fit_to_uint8 }
         outputs: vis_graph_seg_edge_img
 
       - inputs: [img_01, sem_seg_img]
         func:
-          - {=: pipelinex.SkimageMarkBoundaries, mode: outer}
-          - {=: pipelinex.fit_to_uint8}
+          - { =: pipelinex.SkimageMarkBoundaries, mode: outer }
+          - { =: pipelinex.fit_to_uint8 }
         outputs: vis_sem_seg_edge_img

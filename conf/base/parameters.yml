@@ -20,7 +20,7 @@ PIPELINES:
     module: # None
     decorator: pipelinex.log_time
     nodes:
-      - inputs: remote_img
+      - inputs: img_source # [Tip] If `func` is omitted, `inputs` will be passed to `outputs` as is
         outputs: img_00
 
       - inputs: img_00

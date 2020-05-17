@@ -1,13 +1,21 @@
 # [reference](https://kedro.readthedocs.io/en/latest/04_user_guide/04_data_catalog.html)
 # [datasets](https://kedro.readthedocs.io/en/latest/kedro.extras.datasets.html)
+# [pipelinex.extras.datasets](https://github.com/Minyus/pipelinex/tree/master/src/pipelinex/extras/datasets)
 
-_images: &images
+# [Tip] Keys starting with `_` will be ignored by Kedro, which is useful to use as
+#       a YAML's Anchor or an alternative to commenting out
+
+_images: &images # YAML's Anchor
   type: pipelinex.ImagesLocalDataSet
   reverse_color: True
   load_args:
     dict_structure: True
 
-remote_img:
+_IGNORED_img_source: # Use this instead of the APIDataSet below to load images from the local storage
+  <<: *images
+  path: data/input/img_00
+
+img_source:
   type: pipelinex.APIDataSet
   url:
     sample_001: https://cdn.foodlogistics.com/files/base/acbm/fl/image/2018/09/960w/GettyImages_485190815.5b9bfb5550ded.jpg
@@ -21,7 +29,7 @@ remote_img:
 
 img_00:
   <<: *images
-  path: data/input/img_00
+  path: data/load/img_00
 
 img_01:
   <<: *images

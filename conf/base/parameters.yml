@@ -1,24 +1,8 @@
-RUN_CONFIG:
-  pipeline_name: __default__
-  only_missing: False
-  runner: SequentialRunner # None
-  tags: # None
-  node_names: # None
-  from_nodes: # None
-  to_nodes: # None
-  from_inputs: # None
-  load_versions: # None
-
-MLFLOW_LOGGING_CONFIG:
-  offset_hours: 0
-  logging_artifacts: # None
-
 PIPELINES:
   __default__:
     =: pipelinex.FlexiblePipeline
-    parameters_in_inputs: False
     module: # None
-    decorator: pipelinex.log_time
+    decorator: pipelinex.mlflow_log_time
     nodes:
       - inputs: img_source # [Tip] If `func` is omitted, `inputs` will be passed to `outputs` as is
         outputs: img_00
@@ -118,3 +102,23 @@ PIPELINES:
           - { =: pipelinex.SkimageMarkBoundaries, mode: outer }
           - { =: pipelinex.fit_to_uint8 }
         outputs: vis_sem_seg_edge_img
+
+RUN_CONFIG:
+  pipeline_name: __default__
+  runner: SequentialRunner # Set to "ParallelRunner" to run in parallel
+  only_missing: False # Set True to run only missing nodes
+  tags: # None
+  node_names: # None
+  from_nodes: # None
+  to_nodes: # None
+  from_inputs: # None
+  load_versions: # None
+
+MLFLOW_LOGGING_CONFIG:
+  uri: sqlite:///mlruns/sqlite.db
+  experiment_name: experiment_001
+  artifact_location: ./mlruns/experiment_001
+  offset_hours: 0 # Specify the offset hour (local time zone) to show in MLflow tracking
+  logging_artifacts: # Optionally specify artifacts (e.g. parameters, trained model, prediction) to save
+# Command to run mlflow server:
+# $ mlflow server --host 0.0.0.0 --backend-store-uri sqlite:///mlruns/sqlite.db --default-artifact-root ./mlruns/experiment_001

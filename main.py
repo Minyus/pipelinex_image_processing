@@ -1,22 +1,12 @@
-import sys
-import os
 from pathlib import Path
-
-project_path = Path(__file__).resolve().parent
-
-src_path = project_path / "src"
-if str(src_path) not in sys.path:
-    sys.path.insert(0, str(src_path))
-
-if "PYTHONPATH" not in os.environ:
-    os.environ["PYTHONPATH"] = src_path
-
-import pipelinex
-
-print("pipelinex version: ", pipelinex.__version__)
-
-from pipelinex import MLflowFlexibleContext
+from pipelinex import __version__, configure_source, FlexibleContext
 
 
-context = MLflowFlexibleContext(project_path)
-context.run()
+if __name__ == "__main__":
+    print("pipelinex version: ", __version__)
+    project_path = Path(__file__).resolve().parent
+    print("project path: ", project_path)
+    source_path = configure_source(project_path)
+    print("source path: ", source_path)
+    context = FlexibleContext(project_path)
+    context.run()

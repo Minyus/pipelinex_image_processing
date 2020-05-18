@@ -1,6 +1,11 @@
 # Pipelinex Image Processing
 
-A project to use [PipelineX](https://github.com/Minyus/pipelinex) for image processing.
+An example project using [PipelineX](https://github.com/Minyus/pipelinex), Kedro, OpenCV, Scikit-image, and TensorFlow/Keras for image processing.
+
+<p align="center">
+<img src="img/kedro_pipeline.PNG">
+Pipeline visualized by Kedro-viz
+</p>
 
 ## Directories
 
@@ -38,8 +43,10 @@ $ pip install git+https://github.com/Minyus/image-segmentation-keras.git
 #### Install the other packages 
 
 ```bash
-$ pip install pipelinex opencv-python scikit-image ocrd-fork-pylsd Keras Pillow pandas numpy requests kedro mlflow
+$ pip install pipelinex opencv-python scikit-image ocrd-fork-pylsd Keras Pillow pandas numpy requests kedro mlflow kedro-viz
 ```
+
+Note: `mlflow` and `kedro-viz` are optional.
 
 ### 2. Clone `https://github.com/Minyus/pipelinex_image_processing.git`
 

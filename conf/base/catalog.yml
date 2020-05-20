@@ -17,6 +17,7 @@ _IGNORED_img_source: # Use this instead of the APIDataSet below to load images f
 
 img_source:
   type: pipelinex.APIDataSet
+  # type: pipelinex.AsyncAPIDataSet
   url:
     sample_001: https://cdn.foodlogistics.com/files/base/acbm/fl/image/2018/09/960w/GettyImages_485190815.5b9bfb5550ded.jpg
     sample_002: https://www.thetrailerconnection.com/zupload/library/180/-1279-840x600-0.jpg

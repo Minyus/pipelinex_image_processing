@@ -29,14 +29,14 @@ PIPELINES:
         func: { =: roi.seg_to_roi }
         outputs: roi
 
-      #      - inputs: raw_graph_seg_img
-      #        outputs: raw_sem_seg_img
-
-      - inputs: img_01
-        decorator: { =: pipelinex.dict_io }
-        func:
-          - { =: semantic_segmentation.get_semantic_segments }
+      - inputs: raw_graph_seg_img
         outputs: raw_sem_seg_img
+
+      # - inputs: img_01
+        # decorator: { =: pipelinex.dict_io }
+        # func:
+          # - { =: semantic_segmentation.get_semantic_segments }
+        # outputs: raw_sem_seg_img
 
       - inputs: raw_sem_seg_img
         func:
@@ -121,7 +121,7 @@ HOOKS:
     experiment_name: experiment_001
     artifact_location: ./mlruns/experiment_001
     offset_hours: 0 # Specify the offset hour (local time zone) to show in MLflow tracking
-
+  
   - =: pipelinex.MLflowArtifactsLoggerHook
     enable_mlflow: True
     filepaths_before_pipeline_run: # Optionally specify the file paths to log before pipeline is run

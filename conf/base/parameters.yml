@@ -2,7 +2,7 @@ PIPELINES:
   __default__:
     =: pipelinex.FlexiblePipeline
     module: # None
-    decorator: pipelinex.mlflow_log_time
+    decorator: # None
     nodes:
       - inputs: img_source # [Tip] If `func` is omitted, `inputs` will be passed to `outputs` as is
         outputs: img_00
@@ -114,11 +114,24 @@ RUN_CONFIG:
   from_inputs: # None
   load_versions: # None
 
-MLFLOW_LOGGING_CONFIG:
-  uri: sqlite:///mlruns/sqlite.db
-  experiment_name: experiment_001
-  artifact_location: ./mlruns/experiment_001
-  offset_hours: 0 # Specify the offset hour (local time zone) to show in MLflow tracking
-  logging_artifacts: # Optionally specify artifacts (e.g. parameters, trained model, prediction) to save
+HOOKS:
+  - =: pipelinex.MLflowBasicLoggerHook
+    enable_mlflow: True
+    uri: sqlite:///mlruns/sqlite.db
+    experiment_name: experiment_001
+    artifact_location: ./mlruns/experiment_001
+    offset_hours: 0 # Specify the offset hour (local time zone) to show in MLflow tracking
+
+  - =: pipelinex.MLflowArtifactsLoggerHook
+    enable_mlflow: True
+    filepaths_before_pipeline_run: # Optionally specify the file paths to log before pipeline is run
+      - conf/base/parameters.yml
+
+  - =: pipelinex.MLflowOutputsLoggerHook
+    enable_mlflow: True
+
+  - =: pipelinex.MLflowTimeLoggerHook
+    enable_mlflow: True
+#
 # Command to run mlflow server:
 # $ mlflow server --host 0.0.0.0 --backend-store-uri sqlite:///mlruns/sqlite.db --default-artifact-root ./mlruns/experiment_001

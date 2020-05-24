@@ -115,27 +115,30 @@ RUN_CONFIG:
   load_versions: # None
 
 HOOKS:
-  - =: pipelinex.MLflowBasicLoggerHook
-    enable_mlflow: True
+  - =: pipelinex.MLflowBasicLoggerHook # Configure and log duration time for the pipeline 
+    enable_mlflow: True # Enable configuring and logging to MLflow
     uri: sqlite:///mlruns/sqlite.db
     experiment_name: experiment_001
     artifact_location: ./mlruns/experiment_001
-    offset_hours: 0 # Specify the offset hour (local time zone) to show in MLflow tracking
-  
-  - =: pipelinex.MLflowArtifactsLoggerHook
-    enable_mlflow: True
+    offset_hours: 0 # Specify the offset hour (e.g. 0 for UTC/GMT +00:00) to log in MLflow
+
+  - =: pipelinex.MLflowArtifactsLoggerHook # Log artifacts of specified file paths and dataset names
+    enable_mlflow: True # Enable logging to MLflow
     filepaths_before_pipeline_run: # Optionally specify the file paths to log before pipeline is run
       - conf/base/parameters.yml
+    datasets_after_node_run: # Optionally specify the dataset names to log after the node is run
+      - model
+    filepaths_after_pipeline_run: # None  # Optionally specify the file paths to log after pipeline is run
 
-  - =: pipelinex.MLflowOutputsLoggerHook
-    enable_mlflow: True
+  - =: pipelinex.MLflowOutputsLoggerHook # Log output datasets of (list of) float, int, and str classes
+    enable_mlflow: True # Enable logging to MLflow
 
-  - =: pipelinex.MLflowTimeLoggerHook
-    enable_mlflow: True
-  
+  - =: pipelinex.MLflowTimeLoggerHook # Log duration time to run each node (task)
+    enable_mlflow: True # Enable logging to MLflow
+
   - =: pipelinex.AddTransformersHook # Add transformers
     transformers: 
-      =: pipelinex.MLflowIOTimeLoggerTransformer
+      =: pipelinex.MLflowIOTimeLoggerTransformer # Log duration time to load and save each dataset
       enable_mlflow: True
 
 #

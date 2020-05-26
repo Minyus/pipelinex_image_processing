@@ -27,27 +27,26 @@ Pipeline visualized by Kedro-viz
 
 ### 1. Install Python packages
 
-#### Install tensorflow 1.x and keras-segmentation
+```bash
+$ pip install pipelinex opencv-python scikit-image ocrd-fork-pylsd Pillow pandas numpy requests kedro mlflow kedro-viz
+```
+
+Note: `mlflow` and `kedro-viz` are optional.
+
+#### [Optional] To use the pretrained TensorFlow model:
+
+##### Install tensorflow 1.x and keras-segmentation
 
 ```bash
-$ pip install tensorflow<2 keras-segmentation
+$ pip install "tensorflow<2" keras-segmentation Keras 
 ```
 
 ##### If you want to use TensorFlow 2.x, install fork of keras-segmentation modified to work with TensorFlow 2.x
 
 ```bash
-$ pip install tensorflow>=2.0.0
+$ pip install "tensorflow>=2.0.0" Keras 
 $ pip install git+https://github.com/Minyus/image-segmentation-keras.git
 ```
-
-#### Install the other packages 
-
-```bash
-$ pip install pipelinex opencv-python scikit-image ocrd-fork-pylsd Keras Pillow pandas numpy requests kedro mlflow kedro-viz
-```
-
-Note: `mlflow` and `kedro-viz` are optional.
-
 ### 2. Clone `https://github.com/Minyus/pipelinex_image_processing.git`
 
 ```bash
@@ -61,10 +60,22 @@ $ cd pipelinex_image_processing
 $ python main.py
 ```
 
-As configured in [catalog.yml](https://github.com/Minyus/pipelinex_image_processing/blob/master/conf/base/catalog.yml), the following 2 images will be downloaded by http requests. 
+As configured in [catalog.yml](https://github.com/Minyus/pipelinex_image_processing/blob/master/conf/base/catalog.yml), the following 2 images will be downloaded by http requests and then processed using `opencv-python`, `scikit-image`, and `ocrd-fork-pylsd` packages.
 
 ![Image](https://cdn.foodlogistics.com/files/base/acbm/fl/image/2018/09/960w/GettyImages_485190815.5b9bfb5550ded.jpg)
 ![Image](https://www.thetrailerconnection.com/zupload/library/180/-1279-840x600-0.jpg)
+
+### 4. [Optional] View the experiment logs in MLflow's UI 
+
+```bash
+$ mlflow server --host 0.0.0.0 --backend-store-uri sqlite:///mlruns/sqlite.db --default-artifact-root ./mlruns/experiment_001
+```
+
+<p align="center">
+<img src="img/mlflow_ui.png">
+Experiment logs in MLflow's UI
+</p>
+
 
 ## Tested environment
 

@@ -157,6 +157,9 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# VS Code
+.vscode/
+
 # mlflow
 mlruns/**
 !mlruns/.gitkeep
@@ -167,9 +170,10 @@ catboost_info
 # csv files
 *.csv
 
+# misc
 *.pt
 *.pth
 *-ubyte
-
-# VS Code
-.vscode/
+*.gz
+*.db
+__docs

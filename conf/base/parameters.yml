@@ -130,7 +130,7 @@ HOOKS:
       - model
     filepaths_after_pipeline_run: # None  # Optionally specify the file paths to log after pipeline is run
 
-  - =: pipelinex.MLflowOutputsLoggerHook # Log output datasets of (list of) float, int, and str classes
+  - =: pipelinex.MLflowDataSetsLoggerHook # Log datasets of (list of) float, int, and str classes
     enable_mlflow: True # Enable logging to MLflow
 
   - =: pipelinex.MLflowTimeLoggerHook # Log duration time to run each node (task)
